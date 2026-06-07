@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
     "kysely",
     "mongoose",
     "mongodb",
+    "esbuild",
+    "@react-email/render",
+    "@react-email/components",
+    "react/jsx-runtime",
+    "react/jsx-dev-runtime",
   ],
 };
 
