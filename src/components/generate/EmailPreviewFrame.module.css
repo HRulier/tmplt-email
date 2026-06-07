@@ -6,59 +6,6 @@
   background: #e5e7eb;
 }
 
-.toolbar {
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  height: 36px;
-  flex-shrink: 0;
-  border-bottom: 1px solid #e5e7eb;
-  background: #fff;
-  gap: 8px;
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  flex-shrink: 0;
-}
-
-.dot[data-loading="true"] {
-  background: #fbbf24;
-  animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
-.refreshBtn {
-  margin-left: auto;
-  padding: 3px 10px;
-  border: 1px solid #e5e7eb;
-  border-radius: 5px;
-  background: #fff;
-  font-size: 0.75rem;
-  cursor: pointer;
-  color: #6b7280;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.refreshBtn:hover:not(:disabled) {
-  background: #f9fafb;
-  border-color: #d1d5db;
-}
-
-.refreshBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* Email frame area — scrollable */
 .frameWrap {
   flex: 1;
@@ -79,6 +26,24 @@
   background: #fff;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
   display: block;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  flex-shrink: 0;
+}
+
+.dot[data-loading="true"] {
+  background: #fbbf24;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 .loading {

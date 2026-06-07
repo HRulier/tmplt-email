@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, KeyboardEvent } from "react";
+import { useState, useEffect, useRef, useCallback, KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useFileSystem } from "@/contexts/FileSystemContext";
 import { useChatContext } from "@/contexts/ChatContext";
@@ -84,6 +84,12 @@ export function Workspace() {
   const [tab, setTab] = useState<Tab>("code");
   const [selected, setSelected] = useState<string | null>(null);
   const [showSave, setShowSave] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const fetchPreviewRef = useRef<(() => void) | null>(null);
+
+  const handleFetchReady = useCallback((fn: () => void) => {
+    fetchPreviewRef.current = fn;
+  }, []);
 
   useEffect(() => {
     if (!selected && filePaths.includes("/Email.tsx")) {
@@ -110,7 +116,6 @@ export function Workspace() {
       const data = await res.json().catch(() => ({}));
       throw new Error((data as { error?: string }).error ?? `HTTP ${res.status}`);
     }
-    // Clear localStorage after successful save
     localStorage.removeItem("emailgen:chat:messages");
     localStorage.removeItem("emailgen:chat:files");
     localStorage.removeItem("emailgen:chat:fields");
@@ -149,14 +154,32 @@ export function Workspace() {
         >
           Preview
         </button>
-        <div className={styles.tabSpacer} />
-        <button className={styles.saveBtn} onClick={() => setShowSave(true)}>
-          Save template
-        </button>
+        {tab === "preview" && (
+          <>
+            <span className={styles.previewDot} data-loading={String(previewLoading)} />
+            {previewLoading && <span className={styles.previewStatus}>Rendering…</span>}
+            <button
+              className={styles.refreshBtn}
+              onClick={() => fetchPreviewRef.current?.()}
+              disabled={previewLoading}
+            >
+              Refresh
+            </button>
+          </>
+        )}
       </div>
 
+      <button className={styles.saveFab} onClick={() => setShowSave(true)}>
+        Save template
+      </button>
+
       {tab === "preview" ? (
-        <EmailPreviewFrame files={files} lastFinishedAt={lastFinishedAt} />
+        <EmailPreviewFrame
+          files={files}
+          lastFinishedAt={lastFinishedAt}
+          onLoadingChange={setPreviewLoading}
+          onFetchReady={handleFetchReady}
+        />
       ) : (
         <div className={styles.split}>
           <nav className={styles.tree}>

@@ -90,25 +90,83 @@
   font-weight: 500;
 }
 
-.tabSpacer {
-  flex: 1;
+.previewDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  flex-shrink: 0;
+  margin-left: 5px;
 }
 
-.saveBtn {
+.previewDot[data-loading="true"] {
+  background: #fbbf24;
+  animation: tabDotPulse 1s ease-in-out infinite;
+}
+
+@keyframes tabDotPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.previewStatus {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  padding: 0 5px;
+}
+
+.refreshBtn {
+  margin-left: auto;
   margin-right: 10px;
-  padding: 5px 14px;
-  font-size: 0.8125rem;
+  padding: 3px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.refreshBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.saveFab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 20;
+  padding: 12px 22px;
+  font-size: 0.875rem;
   font-weight: 500;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   background: #1d4ed8;
   color: #fff;
   cursor: pointer;
+  box-shadow: 0 4px 18px rgba(29, 78, 216, 0.35);
+  transition:
+    background 0.15s,
+    box-shadow 0.15s;
 }
 
-.saveBtn:disabled {
-  background: #93c5fd;
-  cursor: not-allowed;
+.saveFab:hover {
+  background: #1e40af;
+  box-shadow: 0 6px 24px rgba(29, 78, 216, 0.45);
 }
 
 /* Save dialog overlay */
@@ -130,7 +188,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .dialogTitle {

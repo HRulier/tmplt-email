@@ -8,11 +8,18 @@ interface Props {
   files: SerializedVFS;
   fieldValues?: Record<string, string>;
   lastFinishedAt: number;
+  onLoadingChange?: (loading: boolean) => void;
+  onFetchReady?: (fn: () => void) => void;
 }
 
-export function EmailPreviewFrame({ files, fieldValues = {}, lastFinishedAt }: Props) {
+export function EmailPreviewFrame({
+  files,
+  fieldValues = {},
+  lastFinishedAt,
+  onLoadingChange,
+  onFetchReady,
+}: Props) {
   const [html, setHtml] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const pendingRef = useRef(false);
   const filesRef = useRef(files);
   filesRef.current = files;
@@ -23,7 +30,7 @@ export function EmailPreviewFrame({ files, fieldValues = {}, lastFinishedAt }: P
   const fetchPreview = useCallback(async () => {
     if (pendingRef.current) return;
     pendingRef.current = true;
-    setLoading(true);
+    onLoadingChange?.(true);
     try {
       const res = await fetch("/api/preview", {
         method: "POST",
@@ -33,9 +40,14 @@ export function EmailPreviewFrame({ files, fieldValues = {}, lastFinishedAt }: P
       setHtml(await res.text());
     } finally {
       pendingRef.current = false;
-      setLoading(false);
+      onLoadingChange?.(false);
     }
-  }, []);
+  }, [onLoadingChange]);
+
+  // Expose fetchPreview to parent once ready
+  useEffect(() => {
+    onFetchReady?.(fetchPreview);
+  }, [fetchPreview, onFetchReady]);
 
   // Trigger when Claude finishes a generation turn
   useEffect(() => {
@@ -71,14 +83,6 @@ export function EmailPreviewFrame({ files, fieldValues = {}, lastFinishedAt }: P
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.toolbar}>
-        <span className={styles.dot} data-loading={String(loading)} />
-        <span>{loading ? "Rendering…" : "Preview"}</span>
-        <button className={styles.refreshBtn} onClick={fetchPreview} disabled={loading}>
-          Refresh
-        </button>
-      </div>
-
       {html !== null ? (
         <div className={styles.frameWrap}>
           <iframe
