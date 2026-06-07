@@ -1,32 +1,62 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 32px;
-  height: 60px;
+  padding: 0 24px;
+  height: 56px;
+  flex-shrink: 0;
   border-bottom: 1px solid #e5e7eb;
-  background: var(--background);
+  background: #fff;
+  gap: 12px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.backBtn:hover {
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: #e5e7eb;
+  flex-shrink: 0;
 }
 
 .name {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  color: var(--foreground);
+  color: #374151;
+  flex: 1;
 }
 
 .signOut {
-  padding: 7px 14px;
-  font-size: 0.875rem;
+  padding: 6px 14px;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: #6b7280;
   background: none;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color 0.15s, color 0.15s;
 }
 
 .signOut:hover {
   border-color: #d1d5db;
-  color: var(--foreground);
+  color: #111827;
 }

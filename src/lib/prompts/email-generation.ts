@@ -1,4 +1,7 @@
-export const emailGenerationPrompt = `\
+import type { VirtualFileSystem } from "@/lib/file-system";
+import type { SystemModelMessage } from "ai";
+
+const emailGenerationPromptBase = `\
 You are an expert React Email template developer.
 
 ## Strict rules
@@ -15,3 +18,29 @@ You are an expert React Email template developer.
    \`\`\`
 6. After creating all files, **always call \`extract_fields\`** to declare the editable fields schema. Each field id must match a \`data-field-id\` in the JSX.
 7. Keep responses concise — write code, don't explain it.`;
+
+export function buildSystemPrompt(fs: VirtualFileSystem): string {
+  const filePaths = fs.listFiles();
+  if (filePaths.length === 0) return emailGenerationPromptBase;
+
+  const fileSection = filePaths
+    .map((path) => {
+      const content = fs.readFile(path);
+      return `### ${path}\n\`\`\`tsx\n${content}\n\`\`\``;
+    })
+    .join("\n\n");
+
+  return `${emailGenerationPromptBase}\n\n## Current file state\n\nThese files already exist — edit them instead of recreating:\n\n${fileSection}`;
+}
+
+export function buildSystemPromptMessage(fs: VirtualFileSystem): SystemModelMessage {
+  return {
+    role: "system",
+    content: buildSystemPrompt(fs),
+    providerOptions: {
+      anthropic: {
+        cacheControl: { type: "ephemeral" },
+      },
+    },
+  };
+}

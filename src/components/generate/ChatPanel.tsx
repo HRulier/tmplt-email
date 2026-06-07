@@ -32,10 +32,15 @@ export function ChatPanel() {
     <div className={styles.panel}>
       <div className={styles.messages}>
         {messages.length === 0 && (
-          <p className={styles.empty}>
-            Describe the email template you want to generate.
-          </p>
+          <div className={styles.empty}>
+            <div className={styles.emptyIcon}>✉</div>
+            <span>Describe the email you want to generate.</span>
+            <span className={styles.emptyHint}>
+              Try: "A subscription confirmation email with a logo, headline, and CTA button."
+            </span>
+          </div>
         )}
+
         {messages.map((msg) => {
           const textParts = msg.parts.filter((p) => p.type === "text");
           const toolParts = msg.parts.filter((p) => p.type.startsWith("tool-"));
@@ -43,16 +48,17 @@ export function ChatPanel() {
           return (
             <div key={msg.id} className={styles.message} data-role={msg.role}>
               {textParts.map((p, i) =>
-                p.type === "text" ? <span key={i}>{p.text}</span> : null
+                p.type === "text" && p.text ? (
+                  <div key={i} className={styles.bubble}>{p.text}</div>
+                ) : null
               )}
               {toolParts.map((p, i) => {
-                const toolName = p.type.replace(/^tool-/, "");
+                const toolName = p.type.replace(/^tool-/, "").replace(/_/g, " ");
                 const isDone = "state" in p && (p as { state: string }).state === "output";
                 return (
                   <div key={i} className={styles.toolBadge}>
-                    <span>⚙</span>
+                    <span className={styles.toolDot} data-done={String(isDone)} />
                     <span>{toolName}</span>
-                    {isDone && <span>✓</span>}
                   </div>
                 );
               })}
@@ -62,41 +68,42 @@ export function ChatPanel() {
         <div ref={bottomRef} />
       </div>
 
-      <div className={styles.statusBar}>
-        {error && <span style={{ color: "#dc2626" }}>{error.message}</span>}
-        {isStreaming && !error && <span>Generating…</span>}
+      <div className={styles.footer}>
+        <div className={styles.statusBar}>
+          {error && <span style={{ color: "#dc2626" }}>{error.message}</span>}
+          {isStreaming && !error && <span>Generating…</span>}
+        </div>
+        <form
+          className={styles.form}
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSend();
+          }}
+        >
+          <textarea
+            className={styles.textarea}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Describe your email template…"
+            rows={1}
+          />
+          {isStreaming ? (
+            <button type="button" className={styles.stopBtn} onClick={stop} title="Stop">
+              ■
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className={styles.sendBtn}
+              disabled={!input.trim()}
+              title="Send"
+            >
+              ↑
+            </button>
+          )}
+        </form>
       </div>
-
-      <form
-        className={styles.form}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSend();
-        }}
-      >
-        <textarea
-          className={styles.textarea}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Describe your email template…"
-          rows={1}
-        />
-        {isStreaming ? (
-          <button type="button" className={styles.stopBtn} onClick={stop} title="Stop">
-            ■
-          </button>
-        ) : (
-          <button
-            type="submit"
-            className={styles.sendBtn}
-            disabled={!input.trim()}
-            title="Send"
-          >
-            ↑
-          </button>
-        )}
-      </form>
     </div>
   );
 }

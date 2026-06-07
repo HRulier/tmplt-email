@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense } from "react";
-import Link from "next/link";
 import { FileSystemProvider } from "@/contexts/FileSystemContext";
 import { ChatProvider } from "@/contexts/ChatContext";
 import { TemplateLoader } from "@/components/generate/TemplateLoader";
@@ -14,11 +13,6 @@ export default function GeneratePage() {
     <FileSystemProvider>
       <Suspense>
         <TemplateLoader>
-          <div className={styles.topbar}>
-            <Link href="/dashboard" className={styles.backBtn}>
-              ← Dashboard
-            </Link>
-          </div>
           <ChatProvider>
             <div className={styles.page}>
               <aside className={styles.chat}>

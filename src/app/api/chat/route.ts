@@ -6,13 +6,13 @@ import {
   createUIMessageStream,
   createUIMessageStreamResponse,
 } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
 import { auth } from "@/lib/auth";
 import { VirtualFileSystem } from "@/lib/file-system";
 import { buildStrReplaceTool } from "@/lib/tools/str-replace";
 import { buildFileManagerTool } from "@/lib/tools/file-manager";
 import { buildExtractFieldsTool } from "@/lib/tools/extract-fields";
-import { emailGenerationPrompt } from "@/lib/prompts/email-generation";
+import { buildSystemPromptMessage } from "@/lib/prompts/email-generation";
+import { selectModel } from "@/lib/model-router";
 import type { SerializedVFS } from "@/types";
 import type { UIMessage } from "ai";
 
@@ -32,12 +32,24 @@ export async function POST(request: Request) {
   const fs = new VirtualFileSystem();
   fs.deserializeFromNodes(files);
 
+  const hasFiles = Object.values(files).some((n) => n.type === "file");
+
+  const lastMsg = messages[messages.length - 1];
+  const lastUserText =
+    lastMsg?.role === "user"
+      ? ((lastMsg as { parts?: Array<{ type: string; text?: string }> }).parts?.find(
+          (p) => p.type === "text"
+        )?.text ?? "")
+      : "";
+
+  const { model, isEdit } = selectModel(lastUserText, hasFiles);
+
   const result = streamText({
-    model: anthropic("claude-sonnet-4-6"),
-    system: emailGenerationPrompt,
-    messages: await convertToModelMessages(messages),
-    maxOutputTokens: 12_000,
-    stopWhen: stepCountIs(40),
+    model,
+    system: buildSystemPromptMessage(fs),
+    messages: await convertToModelMessages(messages.slice(-6)),
+    maxOutputTokens: isEdit ? 4_000 : 8_000,
+    stopWhen: stepCountIs(isEdit ? 10 : 20),
     tools: {
       str_replace_editor: buildStrReplaceTool(fs),
       file_manager: buildFileManagerTool(fs),
@@ -47,10 +59,7 @@ export async function POST(request: Request) {
 
   const stream = createUIMessageStream<AppUIMessage>({
     execute: async ({ writer }) => {
-      // Merge all Claude streaming chunks
       writer.merge(result.toUIMessageStream());
-
-      // After the stream drains, append the final VFS snapshot as message metadata
       await result.consumeStream();
       writer.write({
         type: "finish",

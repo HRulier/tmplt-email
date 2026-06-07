@@ -1,6 +1,8 @@
 .page {
   padding: 32px;
   max-width: 960px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .header {
