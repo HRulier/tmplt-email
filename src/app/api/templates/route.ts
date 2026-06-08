@@ -29,10 +29,11 @@ export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, files, fields } = (await request.json()) as {
+  const { name, files, fields, fieldValues: incomingFieldValues } = (await request.json()) as {
     name: string;
     files: SerializedVFS;
     fields: FieldDef[];
+    fieldValues?: Record<string, string>;
   };
 
   if (!name?.trim()) {
@@ -41,11 +42,19 @@ export async function POST(request: Request) {
 
   await connectDB();
 
+  const defaults = Object.fromEntries(
+    (fields ?? []).map((f) => [f.id, f.defaultValue])
+  );
+  const fieldValues = incomingFieldValues
+    ? { ...defaults, ...incomingFieldValues }
+    : defaults;
+
   const template = await TemplateModel.create({
     userId: session.user.id,
     name: name.trim(),
     files,
     fields,
+    fieldValues,
   });
 
   return Response.json({ id: template._id.toString() }, { status: 201 });

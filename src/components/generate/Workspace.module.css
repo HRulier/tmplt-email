@@ -249,6 +249,14 @@
   margin: 0;
 }
 
+/* Preview + sidebar layout */
+.previewArea {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* File content viewer */
 .split {
   flex: 1;

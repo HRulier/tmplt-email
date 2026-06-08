@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import { TemplateModel } from "@/lib/models/template.model";
+import { TemplateCard } from "./TemplateCard";
 import styles from "./dashboard.module.css";
 
 export default async function DashboardPage() {
@@ -29,21 +30,12 @@ export default async function DashboardPage() {
       ) : (
         <div className={styles.grid}>
           {templates.map((t) => (
-            <Link
+            <TemplateCard
               key={t._id.toString()}
-              href={`/generate?template=${t._id.toString()}`}
-              className={styles.card}
-            >
-              <p className={styles.cardName}>{t.name}</p>
-              <p className={styles.cardMeta}>
-                Updated{" "}
-                {new Date(t.updatedAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
-            </Link>
+              id={t._id.toString()}
+              name={t.name}
+              updatedAt={t.updatedAt.toISOString()}
+            />
           ))}
         </div>
       )}

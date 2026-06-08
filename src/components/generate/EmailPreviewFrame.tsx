@@ -7,6 +7,7 @@ import styles from "./EmailPreviewFrame.module.css";
 interface Props {
   files: SerializedVFS;
   fieldValues?: Record<string, string>;
+  fieldValuesReady: boolean;
   lastFinishedAt: number;
   onLoadingChange?: (loading: boolean) => void;
   onFetchReady?: (fn: () => void) => void;
@@ -15,6 +16,7 @@ interface Props {
 export function EmailPreviewFrame({
   files,
   fieldValues = {},
+  fieldValuesReady,
   lastFinishedAt,
   onLoadingChange,
   onFetchReady,
@@ -35,7 +37,10 @@ export function EmailPreviewFrame({
       const res = await fetch("/api/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ files: filesRef.current, fieldValues: fieldValuesRef.current }),
+        body: JSON.stringify({
+          files: filesRef.current,
+          fieldValues: fieldValuesRef.current,
+        }),
       });
       setHtml(await res.text());
     } finally {
@@ -55,15 +60,17 @@ export function EmailPreviewFrame({
     fetchPreview();
   }, [lastFinishedAt, fetchPreview]);
 
-  // Trigger once when a saved template is loaded
+  // Trigger once when files + fieldValues are both ready.
+  // fieldValuesReady is set by Workspace after seeding from saved DB values,
+  // ensuring the first preview render always uses the correct field values.
   const didInitRef = useRef(false);
+  const hasFiles = Object.values(files).some((n) => n.type === "file");
   useEffect(() => {
     if (didInitRef.current) return;
-    const hasFiles = Object.values(files).some((n) => n.type === "file");
-    if (!hasFiles) return;
+    if (!hasFiles || !fieldValuesReady) return;
     didInitRef.current = true;
     fetchPreview();
-  }, [files, fetchPreview]);
+  }, [hasFiles, fieldValuesReady, fetchPreview]);
 
   // Auto-resize iframe to match its content height
   const handleIframeLoad = () => {

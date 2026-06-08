@@ -1,125 +1,121 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, KeyboardEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useFileSystem } from "@/contexts/FileSystemContext";
 import { useChatContext } from "@/contexts/ChatContext";
 import { EmailPreviewFrame } from "./EmailPreviewFrame";
+import { FieldEditorSidebar } from "./FieldEditorSidebar";
 import styles from "./Workspace.module.css";
+import type { FieldDef } from "@/types";
 
 type Tab = "code" | "preview";
 
-function SaveDialog({
-  onSave,
-  onCancel,
-}: {
-  onSave: (name: string) => Promise<void>;
-  onCancel: () => void;
-}) {
-  const [name, setName] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+function extractTemplateName(messages: { role: string; parts?: Array<{ type: string; text?: string }> }[]): string {
+  const first = messages.find((m) => m.role === "user");
+  const text = first?.parts?.find((p) => p.type === "text")?.text ?? "Untitled";
+  return text.slice(0, 60).trim();
+}
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
-  const handleSave = async () => {
-    if (!name.trim()) return;
-    setSaving(true);
-    setError(null);
-    try {
-      await onSave(name.trim());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-      setSaving(false);
-    }
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") handleSave();
-    if (e.key === "Escape") onCancel();
-  };
-
-  return (
-    <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className={styles.dialog}>
-        <p className={styles.dialogTitle}>Save template</p>
-        <input
-          ref={inputRef}
-          className={styles.dialogInput}
-          placeholder="Template name…"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        {error && <p className={styles.dialogError}>{error}</p>}
-        <div className={styles.dialogActions}>
-          <button className={styles.dialogCancel} onClick={onCancel} disabled={saving}>
-            Cancel
-          </button>
-          <button
-            className={styles.dialogConfirm}
-            onClick={handleSave}
-            disabled={!name.trim() || saving}
-          >
-            {saving ? "Saving…" : "Save"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+function buildDefaults(fields: FieldDef[], savedFieldValues: Record<string, string>): Record<string, string> {
+  const defaults: Record<string, string> = {};
+  for (const f of fields) defaults[f.id] = f.defaultValue;
+  return { ...defaults, ...savedFieldValues };
 }
 
 export function Workspace() {
-  const { files, fields } = useFileSystem();
-  const { lastFinishedAt } = useChatContext();
+  const { files, fields, savedFieldValues } = useFileSystem();
+  const { messages, lastFinishedAt } = useChatContext();
   const router = useRouter();
-  const filePaths = Object.values(files)
-    .filter((n) => n.type === "file")
-    .map((n) => n.path)
-    .sort();
+  const searchParams = useSearchParams();
+  const templateIdRef = useRef<string | null>(searchParams.get("template"));
 
-  const [tab, setTab] = useState<Tab>("code");
-  const [selected, setSelected] = useState<string | null>(null);
-  const [showSave, setShowSave] = useState(false);
+  const filePaths = useMemo(
+    () =>
+      Object.values(files)
+        .filter((n) => n.type === "file")
+        .map((n) => n.path)
+        .sort(),
+    [files]
+  );
+
+  const fieldDefaults = useMemo(
+    () => buildDefaults(fields, savedFieldValues),
+    [fields, savedFieldValues]
+  );
+
+  // fieldOverrides resets whenever the field set identity changes (new generation or template load)
+  const fieldsId = fields.map((f) => f.id).join(",");
+  const [overridesForFields, setOverridesForFields] = useState<{ fieldsId: string; values: Record<string, string> }>(
+    { fieldsId, values: {} }
+  );
+  const fieldOverrides = useMemo(
+    () => (overridesForFields.fieldsId === fieldsId ? overridesForFields.values : {}),
+    [overridesForFields, fieldsId]
+  );
+  const fieldValues = useMemo(() => ({ ...fieldDefaults, ...fieldOverrides }), [fieldDefaults, fieldOverrides]);
+  const fieldValuesReady = fields.length > 0 || Object.keys(savedFieldValues).length > 0;
+
+  // tab: "preview" once files exist, unless user explicitly chose "code"
+  const [tabOverride, setTabOverride] = useState<Tab | null>(null);
+  const tab: Tab = tabOverride ?? (filePaths.length > 0 ? "preview" : "code");
+
+  // selected: /Email.tsx or first file, unless user clicked a different file
+  const defaultSelected = filePaths.includes("/Email.tsx") ? "/Email.tsx" : (filePaths[0] ?? null);
+  const [selectedOverride, setSelectedOverride] = useState<string | null>(null);
+  const selected = selectedOverride !== null && filePaths.includes(selectedOverride) ? selectedOverride : defaultSelected;
+
   const [previewLoading, setPreviewLoading] = useState(false);
   const fetchPreviewRef = useRef<(() => void) | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-save after every AI response that produces files
+  useEffect(() => {
+    if (lastFinishedAt === 0 || filePaths.length === 0) return;
+
+    if (templateIdRef.current) {
+      fetch(`/api/templates/${templateIdRef.current}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ files, fields, fieldValues: fieldDefaults }),
+      }).catch(console.error);
+    } else {
+      const name = extractTemplateName(messages as Parameters<typeof extractTemplateName>[0]);
+      fetch("/api/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, files, fields, fieldValues: fieldDefaults }),
+      })
+        .then((r) => r.json())
+        .then((data: { id?: string }) => {
+          if (data.id) {
+            templateIdRef.current = data.id;
+            router.replace(`/generate?template=${data.id}`);
+          }
+        })
+        .catch(console.error);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastFinishedAt]);
 
   const handleFetchReady = useCallback((fn: () => void) => {
     fetchPreviewRef.current = fn;
   }, []);
 
-  useEffect(() => {
-    if (!selected && filePaths.includes("/Email.tsx")) {
-      setSelected("/Email.tsx");
-    } else if (!selected && filePaths.length > 0) {
-      setSelected(filePaths[0]);
-    }
-  }, [filePaths, selected]);
-
-  useEffect(() => {
-    if (filePaths.includes("/Email.tsx") && tab === "code") {
-      setTab("preview");
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filePaths.length > 0]);
-
-  const handleSave = async (name: string) => {
-    const res = await fetch("/api/templates", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, files, fields }),
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error((data as { error?: string }).error ?? `HTTP ${res.status}`);
-    }
-    localStorage.removeItem("emailgen:chat:messages");
-    localStorage.removeItem("emailgen:chat:files");
-    localStorage.removeItem("emailgen:chat:fields");
-    router.push("/dashboard");
+  const handleFieldChange = (id: string, value: string) => {
+    const next = { ...fieldOverrides, [id]: value };
+    setOverridesForFields({ fieldsId, values: next });
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchPreviewRef.current?.();
+      if (templateIdRef.current) {
+        fetch(`/api/templates/${templateIdRef.current}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fieldValues: { ...fieldDefaults, ...next } }),
+        }).catch(console.error);
+      }
+    }, 800);
   };
 
   if (filePaths.length === 0) {
@@ -132,32 +128,34 @@ export function Workspace() {
   }
 
   const content = selected ? (files[selected]?.content ?? null) : null;
+  const showSidebar = tab === "preview" && fields.length > 0;
 
   return (
     <>
-      {showSave && (
-        <SaveDialog onSave={handleSave} onCancel={() => setShowSave(false)} />
-      )}
-
       <div className={styles.tabs}>
         <button
           className={styles.tab}
           data-active={tab === "code" ? "true" : "false"}
-          onClick={() => setTab("code")}
+          onClick={() => setTabOverride("code")}
         >
           Code
         </button>
         <button
           className={styles.tab}
           data-active={tab === "preview" ? "true" : "false"}
-          onClick={() => setTab("preview")}
+          onClick={() => setTabOverride("preview")}
         >
           Preview
         </button>
         {tab === "preview" && (
           <>
-            <span className={styles.previewDot} data-loading={String(previewLoading)} />
-            {previewLoading && <span className={styles.previewStatus}>Rendering…</span>}
+            <span
+              className={styles.previewDot}
+              data-loading={String(previewLoading)}
+            />
+            {previewLoading && (
+              <span className={styles.previewStatus}>Rendering…</span>
+            )}
             <button
               className={styles.refreshBtn}
               onClick={() => fetchPreviewRef.current?.()}
@@ -169,17 +167,25 @@ export function Workspace() {
         )}
       </div>
 
-      <button className={styles.saveFab} onClick={() => setShowSave(true)}>
-        Save template
-      </button>
-
       {tab === "preview" ? (
-        <EmailPreviewFrame
-          files={files}
-          lastFinishedAt={lastFinishedAt}
-          onLoadingChange={setPreviewLoading}
-          onFetchReady={handleFetchReady}
-        />
+        <div className={styles.previewArea}>
+          <EmailPreviewFrame
+            files={files}
+            fieldValues={fieldValues}
+            fieldValuesReady={fieldValuesReady}
+            lastFinishedAt={lastFinishedAt}
+            onLoadingChange={setPreviewLoading}
+            onFetchReady={handleFetchReady}
+          />
+          {showSidebar && (
+            <FieldEditorSidebar
+              fields={fields}
+              fieldValues={fieldValues}
+              files={files}
+              onChange={handleFieldChange}
+            />
+          )}
+        </div>
       ) : (
         <div className={styles.split}>
           <nav className={styles.tree}>
@@ -188,12 +194,14 @@ export function Workspace() {
                 key={path}
                 className={styles.treeItem}
                 data-active={path === selected ? "true" : "false"}
-                onClick={() => setSelected(path)}
+                onClick={() => setSelectedOverride(path)}
               >
                 <span className={styles.treeIcon}>
                   {path.endsWith(".tsx") || path.endsWith(".ts") ? "TS" : "📄"}
                 </span>
-                <span className={styles.treeLabel}>{path.replace(/^\//, "")}</span>
+                <span className={styles.treeLabel}>
+                  {path.replace(/^\//, "")}
+                </span>
               </button>
             ))}
           </nav>
@@ -202,7 +210,9 @@ export function Workspace() {
             {content !== null ? (
               <pre className={styles.code}>{content}</pre>
             ) : (
-              <p className={styles.noFile}>Select a file to view its content.</p>
+              <p className={styles.noFile}>
+                Select a file to view its content.
+              </p>
             )}
           </div>
         </div>
