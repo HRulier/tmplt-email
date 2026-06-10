@@ -7,6 +7,7 @@ import {
   useCallback,
   useState,
   useEffect,
+  useMemo,
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
@@ -18,15 +19,19 @@ type VfsMeta = { vfsSnapshot?: SerializedVFS };
 export type AppUIMessage = UIMessage<VfsMeta>;
 type ChatHelpers = ReturnType<typeof useChat<AppUIMessage>>;
 
-interface TemplateContextValue {
-  // file system
+export interface TemplateFS {
   files: SerializedVFS;
   fields: FieldDef[];
   savedFieldValues: Record<string, string>;
+}
+
+const EMPTY_FS: TemplateFS = { files: {}, fields: [], savedFieldValues: {} };
+
+interface TemplateContextValue {
+  fs: TemplateFS;
+  setFS: (next: TemplateFS) => void;
   setFiles: (files: SerializedVFS) => void;
   setFields: (fields: FieldDef[]) => void;
-  setSavedFieldValues: (values: Record<string, string>) => void;
-  // chat
   messages: AppUIMessage[];
   status: ChatHelpers["status"];
   error: ChatHelpers["error"];
@@ -38,28 +43,40 @@ interface TemplateContextValue {
 
 const TemplateContext = createContext<TemplateContextValue | null>(null);
 
+class FilesStore {
+  files: SerializedVFS = {};
+  update(files: SerializedVFS) { this.files = files; }
+}
+
+function makeTransport(store: FilesStore) {
+  return new DefaultChatTransport<AppUIMessage>({
+    api: "/api/chat",
+    fetch: async (input, init) => {
+      const body = JSON.parse((init?.body as string) ?? "{}");
+      return fetch(input, {
+        ...init,
+        body: JSON.stringify({ ...body, files: store.files }),
+      });
+    },
+  });
+}
+
 export function TemplateProvider({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const templateId = searchParams.get("template");
 
-  // file system state
-  const [files, setFilesState] = useState<SerializedVFS>({});
-  const [fields, setFieldsState] = useState<FieldDef[]>([]);
-  const [savedFieldValues, setSavedFieldValuesState] = useState<
-    Record<string, string>
-  >({});
+  const [fs, setFS] = useState<TemplateFS>(EMPTY_FS);
 
   const setFiles = useCallback(
-    (next: SerializedVFS) => setFilesState(next),
+    (files: SerializedVFS) => setFS((prev) => ({ ...prev, files })),
     [],
   );
-  const setFields = useCallback((next: FieldDef[]) => setFieldsState(next), []);
-  const setSavedFieldValues = useCallback(
-    (next: Record<string, string>) => setSavedFieldValuesState(next),
+  const setFields = useCallback(
+    (fields: FieldDef[]) => setFS((prev) => ({ ...prev, fields })),
     [],
   );
 
-  // load existing template on mount
+  // load existing template on mount — single atomic setState
   const loadedRef = useRef(false);
   useEffect(() => {
     if (!templateId || loadedRef.current) return;
@@ -69,36 +86,30 @@ export function TemplateProvider({ children }: { children: React.ReactNode }) {
         if (!r.ok) throw new Error("Not found");
         return r.json();
       })
-      .then(
-        (data: {
-          files: SerializedVFS;
-          fields: FieldDef[];
-          fieldValues: Record<string, string>;
-        }) => {
-          setFiles(data.files);
-          setFields(data.fields);
-          setSavedFieldValues(data.fieldValues ?? {});
-        },
-      )
-      .catch(console.error);
-  }, [templateId, setFiles, setFields, setSavedFieldValues]);
-
-  // chat state
-  const [lastFinishedAt, setLastFinishedAt] = useState(0);
-  const filesRef = useRef(files);
-
-  const transportRef = useRef(
-    new DefaultChatTransport<AppUIMessage>({
-      api: "/api/chat",
-      fetch: async (input, init) => {
-        const body = JSON.parse((init?.body as string) ?? "{}");
-        return fetch(input, {
-          ...init,
-          body: JSON.stringify({ ...body, files: filesRef.current }),
+      .then((data: { files: SerializedVFS; fields: FieldDef[]; fieldValues: Record<string, string> }) => {
+        setFS({
+          files: data.files,
+          fields: data.fields,
+          savedFieldValues: data.fieldValues ?? {},
         });
-      },
-    }),
-  );
+      })
+      .catch(console.error);
+  }, [templateId]);
+
+  // chat
+  const [lastFinishedAt, setLastFinishedAt] = useState(0);
+
+  // store and transport are created once per provider instance via useMemo.
+  // store.files is updated in an effect and only read inside the async fetch
+  // callback — never during render.
+  const { store, transport } = useMemo(() => {
+    const store = new FilesStore();
+    return { store, transport: makeTransport(store) };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    store.update(fs.files);
+  }, [store, fs.files]);
 
   const handleToolCall = useCallback(
     ({ toolCall }: { toolCall: { toolName: string; input: unknown } }) => {
@@ -116,7 +127,7 @@ export function TemplateProvider({ children }: { children: React.ReactNode }) {
 
   const { messages, status, error, sendMessage, stop, setMessages } =
     useChat<AppUIMessage>({
-      transport: transportRef.current,
+      transport,
       onToolCall: handleToolCall,
       onFinish: ({ message }) => {
         const snapshot = message.metadata?.vfsSnapshot;
@@ -128,12 +139,10 @@ export function TemplateProvider({ children }: { children: React.ReactNode }) {
   return (
     <TemplateContext.Provider
       value={{
-        files,
-        fields,
-        savedFieldValues,
+        fs,
+        setFS,
         setFiles,
         setFields,
-        setSavedFieldValues,
         messages,
         status,
         error,
