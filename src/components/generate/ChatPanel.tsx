@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef, useEffect, useState, KeyboardEvent } from "react";
-import { useChatContext } from "@/contexts/ChatContext";
+import { useTemplate, type AppUIMessage } from "@/contexts/TemplateContext";
 import styles from "./ChatPanel.module.css";
 
 export function ChatPanel() {
-  const { messages, status, error, sendMessage, stop } = useChatContext();
+  const { messages, status, error, sendMessage, stop } = useTemplate();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const isStreaming = status === "streaming" || status === "submitted";
@@ -41,7 +41,7 @@ export function ChatPanel() {
           </div>
         )}
 
-        {messages.map((msg) => {
+        {(messages as AppUIMessage[]).map((msg) => {
           const textParts = msg.parts.filter((p) => p.type === "text");
           const toolParts = msg.parts.filter((p) => p.type.startsWith("tool-"));
 

@@ -43,6 +43,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
   const { id } = await params;
   const body = (await request.json()) as {
+    name?: string;
     fieldValues?: Record<string, string>;
     files?: SerializedVFS;
     fields?: FieldDef[];
@@ -51,6 +52,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   await connectDB();
 
   const patch: Record<string, unknown> = { updatedAt: new Date() };
+  if (body.name !== undefined) patch.name = body.name;
   if (body.fieldValues !== undefined) patch.fieldValues = body.fieldValues;
   if (body.files !== undefined) patch.files = body.files;
   if (body.fields !== undefined) patch.fields = body.fields;

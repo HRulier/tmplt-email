@@ -2,8 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useFileSystem } from "@/contexts/FileSystemContext";
-import { useChatContext } from "@/contexts/ChatContext";
+import { useTemplate } from "@/contexts/TemplateContext";
 import { EmailPreviewFrame } from "./EmailPreviewFrame";
 import { FieldEditorSidebar } from "./FieldEditorSidebar";
 import styles from "./Workspace.module.css";
@@ -24,8 +23,7 @@ function buildDefaults(fields: FieldDef[], savedFieldValues: Record<string, stri
 }
 
 export function Workspace() {
-  const { files, fields, savedFieldValues } = useFileSystem();
-  const { messages, lastFinishedAt } = useChatContext();
+  const { files, fields, savedFieldValues, messages, lastFinishedAt } = useTemplate();
   const router = useRouter();
   const searchParams = useSearchParams();
   const templateIdRef = useRef<string | null>(searchParams.get("template"));

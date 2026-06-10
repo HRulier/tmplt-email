@@ -1,8 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
+import { TemplateNameInput } from "@/components/generate/TemplateNameInput";
 import styles from "./Header.module.css";
 
 const BACK_ROUTES: { match: RegExp; href: string; label: string }[] = [
@@ -14,6 +16,7 @@ export function Header({ name }: { name: string }) {
   const pathname = usePathname();
 
   const back = BACK_ROUTES.find((r) => r.match.test(pathname));
+  const isGenerate = /^\/generate/.test(pathname);
 
   const handleSignOut = async () => {
     await signOut();
@@ -30,7 +33,13 @@ export function Header({ name }: { name: string }) {
           <div className={styles.divider} />
         </>
       )}
-      <span className={styles.name}>Hello {name} 👋</span>
+      {isGenerate ? (
+        <Suspense fallback={<span className={styles.name} />}>
+          <TemplateNameInput />
+        </Suspense>
+      ) : (
+        <span className={styles.name}>Hello {name} 👋</span>
+      )}
       <button onClick={handleSignOut} className={styles.signOut}>
         Sign out
       </button>
