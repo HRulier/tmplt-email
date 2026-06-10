@@ -51,7 +51,7 @@ export function TemplateNameInput() {
     <div className={styles.wrapper} data-focused={String(focused)}>
       {/* Hidden sizer — input stretches to match this */}
       <span className={styles.sizer} aria-hidden="true">
-        {name || "Template name"}
+        {name || "Nom du template"}
       </span>
       <input
         className={styles.input}
@@ -59,7 +59,7 @@ export function TemplateNameInput() {
         onChange={handleChange}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        placeholder="Template name"
+        placeholder="Nom du template"
         spellCheck={false}
       />
       {!focused && <LuPencilLine className={styles.icon} size={13} />}

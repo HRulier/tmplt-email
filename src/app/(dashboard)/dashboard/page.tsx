@@ -21,14 +21,14 @@ export default async function DashboardPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Email Templates</h1>
+        <h1 className={styles.title}>Templates email</h1>
         <Link href="/generate" className={styles.newBtn}>
-          + New Template
+          + Nouveau template
         </Link>
       </div>
 
       {templates.length === 0 ? (
-        <p className={styles.empty}>No templates yet — create your first one.</p>
+        <p className={styles.empty}>Aucun template pour l&apos;instant — créez votre premier.</p>
       ) : (
         <div className={styles.grid}>
           {templates.map((t) => (

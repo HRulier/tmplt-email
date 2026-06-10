@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { TbMail } from "react-icons/tb";
 import { useTemplate } from "@/contexts/TemplateContext";
 import { EmailPreviewFrame } from "./EmailPreviewFrame";
 import { FieldEditorSidebar } from "./FieldEditorSidebar";
@@ -143,8 +144,10 @@ export function Workspace() {
   if (filePaths.length === 0) {
     return (
       <div className={styles.empty}>
-        <span className={styles.emptyIcon}>✉</span>
-        <span>Generated files will appear here</span>
+        <span className={styles.emptyIcon}>
+          <TbMail />
+        </span>
+        <span>Les fichiers générés apparaîtront ici</span>
       </div>
     );
   }
@@ -160,7 +163,7 @@ export function Workspace() {
           data-active={tab === "preview" ? "true" : "false"}
           onClick={() => setTabOverride("preview")}
         >
-          Preview
+          Aperçu
         </button>
         {tab === "preview" && (
           <>
@@ -169,14 +172,14 @@ export function Workspace() {
               data-loading={String(previewLoading)}
             />
             {previewLoading && (
-              <span className={styles.previewStatus}>Rendering…</span>
+              <span className={styles.previewStatus}>Rendu en cours…</span>
             )}
             <button
               className={styles.refreshBtn}
               onClick={() => fetchPreviewRef.current?.()}
               disabled={previewLoading}
             >
-              Refresh
+              Actualiser
             </button>
           </>
         )}
@@ -225,7 +228,7 @@ export function Workspace() {
               <pre className={styles.code}>{content}</pre>
             ) : (
               <p className={styles.noFile}>
-                Select a file to view its content.
+                Sélectionnez un fichier pour afficher son contenu.
               </p>
             )}
           </div>

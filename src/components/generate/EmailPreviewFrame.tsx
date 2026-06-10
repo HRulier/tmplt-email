@@ -20,6 +20,7 @@ export function EmailPreviewFrame({
   onFetchReady,
 }: Props) {
   const [html, setHtml] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const pendingRef = useRef(false);
   const filesRef = useRef(files);
   filesRef.current = files;
@@ -40,7 +41,13 @@ export function EmailPreviewFrame({
           fieldValues: fieldValuesRef.current,
         }),
       });
-      setHtml(await res.text());
+      if (!res.ok) {
+        const { error: msg } = await res.json() as { error: string };
+        setError(msg);
+      } else {
+        setError(null);
+        setHtml(await res.text());
+      }
     } finally {
       pendingRef.current = false;
       onLoadingChange?.(false);
@@ -84,7 +91,13 @@ export function EmailPreviewFrame({
 
   return (
     <div className={styles.wrapper}>
-      {html !== null ? (
+      {error ? (
+        <div className={styles.errorState}>
+          <span className={styles.errorIcon}>⚠</span>
+          <p className={styles.errorTitle}>Le template contient des erreurs</p>
+          <p className={styles.errorHint}>L&apos;IA va corriger automatiquement au prochain message.</p>
+        </div>
+      ) : html !== null ? (
         <div className={styles.frameWrap}>
           <iframe
             ref={iframeRef}
@@ -98,7 +111,7 @@ export function EmailPreviewFrame({
       ) : (
         <div className={styles.loading}>
           <span className={styles.dot} data-loading="true" />
-          Rendering preview…
+          Rendu en cours…
         </div>
       )}
     </div>

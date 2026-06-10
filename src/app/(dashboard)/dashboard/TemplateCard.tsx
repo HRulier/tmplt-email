@@ -43,7 +43,7 @@ export function TemplateCard({ id, name, updatedAt }: Props) {
         className={styles.deleteBtn}
         onClick={handleDelete}
         disabled={deleting}
-        aria-label="Delete template"
+        aria-label="Supprimer le template"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="3 6 5 6 21 6" />
