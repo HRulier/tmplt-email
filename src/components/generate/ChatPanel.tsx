@@ -3,11 +3,13 @@
 import { useRef, useEffect, useState, KeyboardEvent } from "react";
 import { TbMail } from "react-icons/tb";
 import { useTemplate, type AppUIMessage } from "@/contexts/TemplateContext";
+import { UsageBanner } from "./UsageBanner";
 import styles from "./ChatPanel.module.css";
 
 export function ChatPanel() {
   const { messages, status, error, sendMessage, stop } = useTemplate();
   const [input, setInput] = useState("");
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const isStreaming = status === "streaming" || status === "submitted";
 
@@ -17,7 +19,7 @@ export function ChatPanel() {
 
   const handleSend = () => {
     const text = input.trim();
-    if (!text || isStreaming) return;
+    if (!text || isStreaming || quotaExceeded) return;
     setInput("");
     sendMessage({ text });
   };
@@ -82,6 +84,7 @@ export function ChatPanel() {
       </div>
 
       <div className={styles.footer}>
+        <UsageBanner onQuotaChange={setQuotaExceeded} />
         <div className={styles.statusBar}>
           {error && <span style={{ color: "#dc2626" }}>{error.message}</span>}
           {isStreaming && !error && <span>Génération en cours…</span>}
@@ -100,6 +103,7 @@ export function ChatPanel() {
             onKeyDown={handleKeyDown}
             placeholder="Décrivez votre template d'email…"
             rows={1}
+            disabled={quotaExceeded}
           />
           {isStreaming ? (
             <button
@@ -114,7 +118,7 @@ export function ChatPanel() {
             <button
               type="submit"
               className={styles.sendBtn}
-              disabled={!input.trim()}
+              disabled={!input.trim() || quotaExceeded}
               title="Envoyer"
             >
               ↑

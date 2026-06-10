@@ -63,6 +63,19 @@ export async function POST(request: Request) {
     }
   }
 
+  const USAGE_LIMIT = 5;
+  if (!provider) {
+    const count = userSettings?.serverKeyUsageCount ?? 0;
+    if (count >= USAGE_LIMIT) {
+      return Response.json({ error: "quota_exceeded" }, { status: 429 });
+    }
+    await UserSettingsModel.findOneAndUpdate(
+      { userId: session.user.id },
+      { $inc: { serverKeyUsageCount: 1 } },
+      { upsert: true, returnDocument: "after" }
+    );
+  }
+
   const { model, isEdit } = selectModel(lastUserText, hasFiles, provider);
 
   const result = streamText({
