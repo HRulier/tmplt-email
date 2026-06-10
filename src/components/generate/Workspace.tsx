@@ -29,7 +29,7 @@ function buildDefaults(
 }
 
 export function Workspace() {
-  const { fs, messages, lastFinishedAt } = useTemplate();
+  const { fs, messages, lastFinishedAt, lastTemplateName } = useTemplate();
   const { files, fields, savedFieldValues } = fs;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -96,9 +96,8 @@ export function Workspace() {
         body: JSON.stringify({ files, fields, fieldValues: fieldDefaults }),
       }).catch(console.error);
     } else {
-      const name = extractTemplateName(
-        messages as Parameters<typeof extractTemplateName>[0],
-      );
+      const name = lastTemplateName?.trim() ||
+        extractTemplateName(messages as Parameters<typeof extractTemplateName>[0]);
       fetch("/api/templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
