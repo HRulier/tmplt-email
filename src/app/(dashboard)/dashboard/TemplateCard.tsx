@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { deleteTemplate } from "./actions";
 import styles from "./dashboard.module.css";
 
 interface Props {
@@ -12,7 +12,6 @@ interface Props {
 }
 
 export function TemplateCard({ id, name, updatedAt }: Props) {
-  const router = useRouter();
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -21,8 +20,7 @@ export function TemplateCard({ id, name, updatedAt }: Props) {
     if (deleting) return;
     setDeleting(true);
     try {
-      await fetch(`/api/templates/${id}`, { method: "DELETE" });
-      router.refresh();
+      await deleteTemplate(id);
     } catch {
       setDeleting(false);
     }
