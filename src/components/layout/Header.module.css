@@ -46,6 +46,26 @@
   flex: 1;
 }
 
+.profileBtn {
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  text-decoration: none;
+  margin-left: auto;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.profileBtn:hover {
+  border-color: #d1d5db;
+  color: #111827;
+}
+
 .signOut {
   padding: 6px 14px;
   font-size: 0.8125rem;
@@ -55,7 +75,6 @@
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   cursor: pointer;
-  margin-left: auto;
   transition:
     border-color 0.15s,
     color 0.15s;

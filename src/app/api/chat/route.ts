@@ -6,8 +6,12 @@ import {
   createUIMessageStream,
   createUIMessageStreamResponse,
 } from "ai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import { auth } from "@/lib/auth";
+import { connectDB } from "@/lib/db";
 import { VirtualFileSystem } from "@/lib/file-system";
+import { UserSettingsModel } from "@/lib/models/user-settings.model";
+import { decryptApiKey } from "@/lib/crypto";
 import { buildStrReplaceTool } from "@/lib/tools/str-replace";
 import { buildFileManagerTool } from "@/lib/tools/file-manager";
 import { buildExtractFieldsTool } from "@/lib/tools/extract-fields";
@@ -43,7 +47,23 @@ export async function POST(request: Request) {
         )?.text ?? "")
       : "";
 
-  const { model, isEdit } = selectModel(lastUserText, hasFiles);
+  // Resolve per-user API key (decrypt in request scope only, never serialized)
+  await connectDB();
+  const userSettings = await UserSettingsModel
+    .findOne({ userId: session.user.id })
+    .select("+encryptedApiKey")
+    .lean();
+
+  let provider: ReturnType<typeof createAnthropic> | undefined;
+  if (userSettings?.encryptedApiKey) {
+    try {
+      provider = createAnthropic({ apiKey: decryptApiKey(userSettings.encryptedApiKey) });
+    } catch {
+      // Decryption failed (e.g. secret rotation) — fall back to server env key
+    }
+  }
+
+  const { model, isEdit } = selectModel(lastUserText, hasFiles, provider);
 
   const result = streamText({
     model,
