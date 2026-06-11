@@ -29,11 +29,12 @@ export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, files, fields, fieldValues: incomingFieldValues } = (await request.json()) as {
+  const { name, files, fields, fieldValues: incomingFieldValues, messages } = (await request.json()) as {
     name: string;
     files: SerializedVFS;
     fields: FieldDef[];
     fieldValues?: Record<string, string>;
+    messages?: unknown[];
   };
 
   if (!name?.trim()) {
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
     files,
     fields,
     fieldValues,
+    messages: messages ?? [],
   });
 
   return Response.json({ id: template._id.toString() }, { status: 201 });
