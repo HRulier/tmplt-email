@@ -29,7 +29,7 @@ function buildDefaults(
 }
 
 export function Workspace() {
-  const { fs, messages, lastFinishedAt, lastTemplateName } = useTemplate();
+  const { fs, messages, lastFinishedAt, lastTemplateName, status } = useTemplate();
   const { files, fields, savedFieldValues } = fs;
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -148,7 +148,20 @@ export function Workspace() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const isGenerating = (status === "streaming" || status === "submitted") && filePaths.length === 0;
+
   if (filePaths.length === 0) {
+    if (isGenerating) {
+      return (
+        <div className={styles.generatingState}>
+          <div className={styles.spinnerWrap}>
+            <span className={styles.spinner} />
+          </div>
+          <p className={styles.generatingLabel}>Génération en cours…</p>
+          <p className={styles.generatingDesc}>L&apos;IA construit votre template email</p>
+        </div>
+      );
+    }
     return (
       <div className={styles.empty}>
         <span className={styles.emptyIcon}>
