@@ -8,6 +8,7 @@ export interface TemplateDocument extends Document {
   fields: FieldDef[];
   fieldValues: Record<string, string>;
   messages: unknown[];
+  isExample: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,6 +31,7 @@ const TemplateSchema = new Schema<TemplateDocument>(
     fields: { type: [FieldDefSchema], default: [] },
     fieldValues: { type: Schema.Types.Mixed, default: {} },
     messages: { type: Schema.Types.Mixed, default: [] },
+    isExample: { type: Boolean, default: false, index: true },
   },
   { timestamps: true }
 );

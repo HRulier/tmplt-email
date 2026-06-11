@@ -54,13 +54,22 @@ export function Header({ name }: { name: string }) {
       ) : (
         <span className={styles.name}>Bonjour {name} 👋</span>
       )}
-      <Link href="/theme" className={`${styles.btn} ${styles.themeBtn}`}>
+      <Link
+        href="/theme"
+        className={`${styles.btn} ${styles.themeBtn}`}
+        data-active={String(pathname.startsWith("/theme"))}
+      >
         Thème
       </Link>
-      <Link href="/profile" className={styles.btn}>
+      <Link
+        href="/profile"
+        className={styles.btn}
+        data-active={String(pathname.startsWith("/profile"))}
+      >
         Mon profil
       </Link>
-      <button onClick={handleSignOut} className={styles.btn}>
+      <div className={styles.navDivider} />
+      <button onClick={handleSignOut} className={styles.signOutBtn}>
         Déconnexion
       </button>
     </header>

@@ -11,7 +11,7 @@ export async function GET() {
   await connectDB();
 
   const templates = await TemplateModel.find({ userId: session.user.id })
-    .select("_id name createdAt updatedAt")
+    .select("_id name createdAt updatedAt isExample")
     .sort({ updatedAt: -1 })
     .lean();
 
@@ -19,6 +19,7 @@ export async function GET() {
     templates.map((t) => ({
       id: t._id.toString(),
       name: t.name,
+      isExample: t.isExample ?? false,
       createdAt: t.createdAt,
       updatedAt: t.updatedAt,
     }))
@@ -29,12 +30,13 @@ export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, files, fields, fieldValues: incomingFieldValues, messages } = (await request.json()) as {
+  const { name, files, fields, fieldValues: incomingFieldValues, messages, isExample } = (await request.json()) as {
     name: string;
     files: SerializedVFS;
     fields: FieldDef[];
     fieldValues?: Record<string, string>;
     messages?: unknown[];
+    isExample?: boolean;
   };
 
   if (!name?.trim()) {
@@ -57,6 +59,7 @@ export async function POST(request: Request) {
     fields,
     fieldValues,
     messages: messages ?? [],
+    isExample: isExample ?? false,
   });
 
   return Response.json({ id: template._id.toString() }, { status: 201 });
