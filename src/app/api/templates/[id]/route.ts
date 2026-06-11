@@ -31,6 +31,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
     files: doc.files,
     fields: doc.fields,
     fieldValues: (doc.fieldValues as Record<string, string>) ?? {},
+    messages: (doc.messages as unknown[]) ?? [],
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   });
@@ -47,6 +48,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     fieldValues?: Record<string, string>;
     files?: SerializedVFS;
     fields?: FieldDef[];
+    messages?: unknown[];
   };
 
   await connectDB();
@@ -56,6 +58,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   if (body.fieldValues !== undefined) patch.fieldValues = body.fieldValues;
   if (body.files !== undefined) patch.files = body.files;
   if (body.fields !== undefined) patch.fields = body.fields;
+  if (body.messages !== undefined) patch.messages = body.messages;
 
   const result = await TemplateModel.collection.updateOne(
     { _id: new mongoose.Types.ObjectId(id), userId: session.user.id },

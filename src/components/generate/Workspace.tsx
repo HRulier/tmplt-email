@@ -3,13 +3,20 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TbMail } from "react-icons/tb";
-import { useTemplate } from "@/contexts/TemplateContext";
+import { useTemplate, type AppUIMessage } from "@/contexts/TemplateContext";
 import { EmailPreviewFrame } from "./EmailPreviewFrame";
 import { FieldEditorSidebar } from "./FieldEditorSidebar";
 import styles from "./Workspace.module.css";
 import type { FieldDef } from "@/types";
 
 type Tab = "code" | "preview";
+
+function stripSnapshots(msgs: AppUIMessage[]): AppUIMessage[] {
+  return msgs.map((m) => ({
+    ...m,
+    metadata: m.metadata ? { ...m.metadata, vfsSnapshot: undefined } : undefined,
+  }));
+}
 
 function extractTemplateName(
   messages: { role: string; parts?: Array<{ type: string; text?: string }> }[],
@@ -90,11 +97,13 @@ export function Workspace() {
   useEffect(() => {
     if (lastFinishedAt === 0 || filePaths.length === 0) return;
 
+    const savedMessages = stripSnapshots(messages).slice(-50);
+
     if (templateIdRef.current) {
       fetch(`/api/templates/${templateIdRef.current}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ files, fields, fieldValues: fieldDefaults }),
+        body: JSON.stringify({ files, fields, fieldValues: fieldDefaults, messages: savedMessages }),
       }).catch(console.error);
     } else {
       const name = lastTemplateName?.trim() ||
@@ -107,6 +116,7 @@ export function Workspace() {
           files,
           fields,
           fieldValues: fieldDefaults,
+          messages: savedMessages,
         }),
       })
         .then((r) => r.json())
@@ -184,13 +194,6 @@ export function Workspace() {
           onClick={() => setTabOverride("preview")}
         >
           Aperçu
-        </button>
-        <button
-          className={styles.tab}
-          data-active={tab === "code" ? "true" : "false"}
-          onClick={() => setTabOverride("code")}
-        >
-          Code
         </button>
         {tab === "preview" && (
           <>
