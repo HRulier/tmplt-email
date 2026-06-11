@@ -1,0 +1,126 @@
+.header {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-5);
+  height: 56px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  gap: var(--space-3);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  transition: box-shadow var(--transition-base);
+}
+
+.header[data-scrolled="true"] {
+  box-shadow: var(--shadow-sm);
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition:
+    border-color var(--transition-base),
+    color var(--transition-base),
+    background var(--transition-fast);
+}
+
+.backBtn:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border);
+  flex-shrink: 0;
+}
+
+.name {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--gray-700);
+  flex: 1;
+}
+
+.btn {
+  padding: 6px 14px;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition:
+    border-color var(--transition-base),
+    color var(--transition-base),
+    background var(--transition-fast);
+}
+
+.themeBtn {
+  margin-left: auto;
+}
+
+.btn:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
+}
+
+.btn[data-active="true"] {
+  color: var(--color-primary-text);
+  background: var(--color-primary-muted);
+  border-color: var(--color-primary-border);
+}
+
+.btn[data-active="true"]:hover {
+  background: var(--color-primary-muted);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary-text);
+}
+
+/* Separator before sign-out */
+.navDivider {
+  width: 1px;
+  height: 16px;
+  background: var(--color-border);
+  flex-shrink: 0;
+}
+
+/* Sign-out: ghost style, danger on hover */
+.signOutBtn {
+  padding: 6px 14px;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-tertiary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    color var(--transition-base),
+    background var(--transition-fast);
+}
+
+.signOutBtn:hover {
+  color: var(--color-error-text);
+  background: var(--color-error-bg);
+}
