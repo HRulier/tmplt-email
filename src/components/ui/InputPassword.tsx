@@ -10,6 +10,7 @@ interface InputPasswordProps<T extends FieldValues> {
   label: string;
   placeholder?: string;
   autoComplete?: "current-password" | "new-password";
+  disabled?: boolean;
 }
 
 export function InputPassword<T extends FieldValues>({
@@ -18,6 +19,7 @@ export function InputPassword<T extends FieldValues>({
   label,
   placeholder = "••••••••",
   autoComplete = "current-password",
+  disabled,
 }: InputPasswordProps<T>) {
   const [visible, setVisible] = useState(false);
 
@@ -37,6 +39,7 @@ export function InputPassword<T extends FieldValues>({
               type={visible ? "text" : "password"}
               placeholder={placeholder}
               autoComplete={autoComplete}
+              disabled={disabled}
               aria-invalid={!!fieldState.error}
               aria-describedby={fieldState.error ? `${name}-error` : undefined}
               className={`${styles.input} ${styles.inputWithToggle} ${fieldState.error ? styles.inputError : ""}`}
@@ -44,6 +47,7 @@ export function InputPassword<T extends FieldValues>({
             <button
               type="button"
               onClick={() => setVisible((v) => !v)}
+              disabled={disabled}
               className={styles.toggle}
               aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
             >

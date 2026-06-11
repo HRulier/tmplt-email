@@ -4,9 +4,19 @@
   padding: 0 10px;
   height: 56px;
   flex-shrink: 0;
-  border-bottom: 1px solid #e5e7eb;
-  background: #fff;
-  gap: 12px;
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  gap: var(--space-3);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  transition: box-shadow var(--transition-base);
+}
+
+.header[data-scrolled="true"] {
+  box-shadow: var(--shadow-sm);
 }
 
 .backBtn {
@@ -14,73 +24,79 @@
   align-items: center;
   gap: 5px;
   padding: 5px 10px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #6b7280;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
   background: none;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   text-decoration: none;
   flex-shrink: 0;
   transition:
-    border-color 0.15s,
-    color 0.15s;
+    border-color var(--transition-base),
+    color var(--transition-base),
+    background var(--transition-fast);
 }
 
 .backBtn:hover {
-  border-color: #d1d5db;
-  color: #111827;
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
 }
 
 .divider {
   width: 1px;
   height: 20px;
-  background: #e5e7eb;
+  background: var(--color-border);
   flex-shrink: 0;
 }
 
 .name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--gray-700);
   flex: 1;
 }
 
 .profileBtn {
   padding: 6px 14px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #6b7280;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
   background: none;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   text-decoration: none;
   margin-left: auto;
   transition:
-    border-color 0.15s,
-    color 0.15s;
+    border-color var(--transition-base),
+    color var(--transition-base),
+    background var(--transition-fast);
 }
 
 .profileBtn:hover {
-  border-color: #d1d5db;
-  color: #111827;
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
 }
 
 .signOut {
   padding: 6px 14px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #6b7280;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
   background: none;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition:
-    border-color 0.15s,
-    color 0.15s;
+    border-color var(--transition-base),
+    color var(--transition-base),
+    background var(--transition-fast);
 }
 
 .signOut:hover {
-  border-color: #d1d5db;
-  color: #111827;
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
 }

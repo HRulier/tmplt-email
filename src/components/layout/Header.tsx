@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
@@ -15,9 +15,21 @@ const BACK_ROUTES: { match: RegExp; href: string; label: string }[] = [
 export function Header({ name }: { name: string }) {
   const router = useRouter();
   const pathname = usePathname();
+  const headerRef = useRef<HTMLElement>(null);
 
   const back = BACK_ROUTES.find((r) => r.match.test(pathname));
   const isGenerate = /^\/generate/.test(pathname);
+
+  useEffect(() => {
+    const onScroll = () => {
+      headerRef.current?.setAttribute(
+        "data-scrolled",
+        String(window.scrollY > 0),
+      );
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -25,7 +37,7 @@ export function Header({ name }: { name: string }) {
   };
 
   return (
-    <header className={styles.header}>
+    <header ref={headerRef} className={styles.header}>
       {back && (
         <>
           <Link href={back.href} className={styles.backBtn}>

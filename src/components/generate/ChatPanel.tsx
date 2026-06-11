@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, KeyboardEvent } from "react";
+import { useRef, useEffect, useState, useCallback, KeyboardEvent } from "react";
 import { TbMail } from "react-icons/tb";
 import { useTemplate, type AppUIMessage } from "@/contexts/TemplateContext";
 import { UsageBanner } from "./UsageBanner";
@@ -10,18 +10,39 @@ export function ChatPanel() {
   const { messages, status, error, sendMessage, stop } = useTemplate();
   const [input, setInput] = useState("");
   const [quotaExceeded, setQuotaExceeded] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
   const isStreaming = status === "streaming" || status === "submitted";
 
+  // Auto-scroll only when user is already at the bottom
   useEffect(() => {
+    if (isAtBottom) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isAtBottom]);
+
+  const handleScroll = useCallback(() => {
+    const el = messagesRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    setIsAtBottom(atBottom);
+  }, []);
+
+  const scrollToBottom = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    setIsAtBottom(true);
+  };
 
   const handleSend = () => {
     const text = input.trim();
     if (!text || isStreaming || quotaExceeded) return;
     setInput("");
+    setIsSending(true);
+    setIsAtBottom(true);
     sendMessage({ text });
+    setTimeout(() => setIsSending(false), 300);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -33,7 +54,11 @@ export function ChatPanel() {
 
   return (
     <div className={styles.panel}>
-      <div className={styles.messages}>
+      <div
+        ref={messagesRef}
+        className={styles.messages}
+        onScroll={handleScroll}
+      >
         {messages.length === 0 && (
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>
@@ -80,14 +105,28 @@ export function ChatPanel() {
             </div>
           );
         })}
+
+        {isStreaming && (
+          <div className={styles.typingIndicator}>
+            <span className={styles.typingDot} />
+            <span className={styles.typingDot} />
+            <span className={styles.typingDot} />
+          </div>
+        )}
+
         <div ref={bottomRef} />
+
+        {!isAtBottom && (
+          <button className={styles.scrollToBottom} onClick={scrollToBottom}>
+            ↓ Nouveaux messages
+          </button>
+        )}
       </div>
 
       <div className={styles.footer}>
         <UsageBanner onQuotaChange={setQuotaExceeded} />
         <div className={styles.statusBar}>
-          {error && <span style={{ color: "#dc2626" }}>{error.message}</span>}
-          {isStreaming && !error && <span>Génération en cours…</span>}
+          {error && <span style={{ color: "var(--color-error-text)" }}>{error.message}</span>}
         </div>
         <form
           className={styles.form}
@@ -119,6 +158,7 @@ export function ChatPanel() {
               type="submit"
               className={styles.sendBtn}
               disabled={!input.trim() || quotaExceeded}
+              data-sending={String(isSending)}
               title="Envoyer"
             >
               ↑

@@ -32,7 +32,7 @@ export default function SignInPage() {
     });
 
     if (error) {
-      form.setError("root", { message: error.message ?? "Identifiants incorrects" });
+      form.setError("root", { message: "Identifiants incorrects" });
       return;
     }
 
@@ -42,11 +42,23 @@ export default function SignInPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        <div className={styles.logo}>E</div>
         <h1 className={styles.title}>Connexion</h1>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form} noValidate>
-          <InputEmail name="email" control={form.control} label="Email" />
-          <InputPassword name="password" control={form.control} label="Mot de passe" />
+          <InputEmail
+            name="email"
+            control={form.control}
+            label="Email"
+            autoFocus
+            disabled={form.formState.isSubmitting}
+          />
+          <InputPassword
+            name="password"
+            control={form.control}
+            label="Mot de passe"
+            disabled={form.formState.isSubmitting}
+          />
 
           {form.formState.errors.root && (
             <p className={styles.errorGlobal} role="alert">

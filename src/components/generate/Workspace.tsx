@@ -82,6 +82,7 @@ export function Workspace() {
       : defaultSelected;
 
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
   const fetchPreviewRef = useRef<(() => void) | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -140,6 +141,13 @@ export function Workspace() {
     }, 800);
   };
 
+  const handleCopy = () => {
+    if (!content) return;
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   if (filePaths.length === 0) {
     return (
       <div className={styles.empty}>
@@ -163,6 +171,13 @@ export function Workspace() {
           onClick={() => setTabOverride("preview")}
         >
           Aperçu
+        </button>
+        <button
+          className={styles.tab}
+          data-active={tab === "code" ? "true" : "false"}
+          onClick={() => setTabOverride("code")}
+        >
+          Code
         </button>
         {tab === "preview" && (
           <>
@@ -224,7 +239,16 @@ export function Workspace() {
 
           <div className={styles.viewer}>
             {content !== null ? (
-              <pre className={styles.code}>{content}</pre>
+              <>
+                <button
+                  className={styles.copyBtn}
+                  data-copied={String(copied)}
+                  onClick={handleCopy}
+                >
+                  {copied ? "Copié" : "Copier"}
+                </button>
+                <pre className={styles.code}>{content}</pre>
+              </>
             ) : (
               <p className={styles.noFile}>
                 Sélectionnez un fichier pour afficher son contenu.

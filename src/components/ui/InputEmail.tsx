@@ -8,6 +8,8 @@ interface InputEmailProps<T extends FieldValues> {
   control: Control<T>;
   label: string;
   placeholder?: string;
+  disabled?: boolean;
+  autoFocus?: boolean;
 }
 
 export function InputEmail<T extends FieldValues>({
@@ -15,6 +17,8 @@ export function InputEmail<T extends FieldValues>({
   control,
   label,
   placeholder = "you@example.com",
+  disabled,
+  autoFocus,
 }: InputEmailProps<T>) {
   return (
     <Controller
@@ -31,6 +35,8 @@ export function InputEmail<T extends FieldValues>({
             type="email"
             placeholder={placeholder}
             autoComplete="email"
+            disabled={disabled}
+            autoFocus={autoFocus}
             aria-invalid={!!fieldState.error}
             aria-describedby={fieldState.error ? `${name}-error` : undefined}
             className={`${styles.input} ${fieldState.error ? styles.inputError : ""}`}

@@ -12,9 +12,16 @@ import styles from "../auth.module.css";
 
 const schema = z
   .object({
-    name: z.string().min(2, "Nom requis (2 caractères minimum)"),
+    name: z.string().trim().min(2, "Minimum 2 caractères"),
     email: z.string().email("Email invalide"),
-    password: z.string().min(8, "8 caractères minimum"),
+    password: z
+      .string()
+      .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+      .max(128, "Mot de passe trop long")
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9])/,
+        "Doit contenir une majuscule, une minuscule, un chiffre et un caractère spécial",
+      ),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -40,7 +47,7 @@ export default function SignUpPage() {
     });
 
     if (error) {
-      form.setError("root", { message: error.message ?? "Erreur lors de la création du compte" });
+      form.setError("root", { message: "Erreur lors de la création du compte" });
       return;
     }
 
@@ -50,6 +57,7 @@ export default function SignUpPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        <div className={styles.logo}>E</div>
         <h1 className={styles.title}>Créer un compte</h1>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form} noValidate>
@@ -60,6 +68,8 @@ export default function SignUpPage() {
               type="text"
               autoComplete="name"
               placeholder="Jean Dupont"
+              autoFocus
+              disabled={form.formState.isSubmitting}
               aria-invalid={!!form.formState.errors.name}
               aria-describedby={form.formState.errors.name ? "name-error" : undefined}
               className={`${styles.input} ${form.formState.errors.name ? styles.inputError : ""}`}
@@ -72,12 +82,18 @@ export default function SignUpPage() {
             )}
           </div>
 
-          <InputEmail name="email" control={form.control} label="Email" />
+          <InputEmail
+            name="email"
+            control={form.control}
+            label="Email"
+            disabled={form.formState.isSubmitting}
+          />
           <InputPassword
             name="password"
             control={form.control}
             label="Mot de passe"
             autoComplete="new-password"
+            disabled={form.formState.isSubmitting}
           />
           <InputPassword
             name="confirmPassword"
@@ -85,6 +101,7 @@ export default function SignUpPage() {
             label="Confirmer le mot de passe"
             autoComplete="new-password"
             placeholder="••••••••"
+            disabled={form.formState.isSubmitting}
           />
 
           {form.formState.errors.root && (
