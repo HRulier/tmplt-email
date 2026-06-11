@@ -1,6 +1,72 @@
 import type { VirtualFileSystem } from "@/lib/file-system";
 import type { SystemModelMessage } from "ai";
 
+const GOOGLE_FONTS_SET = new Set([
+  "Inter",
+  "Roboto",
+  "Open Sans",
+  "Lato",
+  "Poppins",
+  "Montserrat",
+  "Playfair Display",
+  "Raleway",
+]);
+
+const FONT_FALLBACKS: Record<string, string> = {
+  Inter: "Arial, sans-serif",
+  Roboto: "Arial, sans-serif",
+  "Open Sans": "Arial, sans-serif",
+  Poppins: "Arial, sans-serif",
+  Lato: "Arial, sans-serif",
+  Montserrat: "Arial, sans-serif",
+  "Playfair Display": "Georgia, serif",
+  Raleway: "Arial, sans-serif",
+  Arial: "Helvetica, sans-serif",
+  Georgia: "Times New Roman, serif",
+  Verdana: "Geneva, sans-serif",
+  "Trebuchet MS": "Helvetica, sans-serif",
+};
+
+export interface Theme {
+  primaryColor?: string;
+  secondaryColor?: string;
+  logoUrl?: string;
+  unsubscribeUrl?: string;
+  fontFamily?: string;
+}
+
+function buildThemeSection(theme: Theme): string {
+  const lines: string[] = [];
+  if (theme.primaryColor)
+    lines.push(
+      `- Couleur primaire : ${theme.primaryColor} — boutons CTA, en-têtes, accents`,
+    );
+  if (theme.secondaryColor)
+    lines.push(
+      `- Couleur secondaire : ${theme.secondaryColor} — accents secondaires`,
+    );
+  if (theme.logoUrl)
+    lines.push(
+      `- Logo : <Img src="${theme.logoUrl}" alt="Logo" width="120" /> dans l'en-tête`,
+    );
+  if (theme.fontFamily) {
+    const fallback = FONT_FALLBACKS[theme.fontFamily] ?? "Arial, sans-serif";
+    const isGoogle = GOOGLE_FONTS_SET.has(theme.fontFamily);
+    const importNote = isGoogle
+      ? ` — importer via \`@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(theme.fontFamily)}:wght@400;600&display=swap')\` dans <Head>`
+      : "";
+    lines.push(
+      `- Typographie : font-family: '${theme.fontFamily}', ${fallback}${importNote}`,
+    );
+  }
+  if (theme.unsubscribeUrl)
+    lines.push(
+      `- Pied de page : toujours inclure \`<Link href="${theme.unsubscribeUrl}">Se désabonner</Link>\``,
+    );
+  if (!lines.length) return "";
+  return `\n\n## Charte graphique (appliquer à chaque email)\n\n${lines.join("\n")}`;
+}
+
 const emailGenerationPromptBase = `\
 You are an expert React Email template developer.
 
@@ -22,9 +88,15 @@ You are an expert React Email template developer.
 7. **Text responses must be short and conversational** — 1 to 2 sentences maximum, in French. Never use Markdown (no headers, no bullet lists, no bold). Never describe the structure or list the sections of the email — the user can see it in the preview. Just confirm what was done or ask a clarifying question if needed. Examples of good responses: "C'est prêt !" / "J'ai ajouté un bouton CTA en bas du template." / "Quelle couleur souhaitez-vous pour le bouton ?"
 8. **JSX must be valid and complete** — every opening tag must have a matching closing tag. Never truncate or abbreviate JSX output. If a file is long, write it fully rather than using comments like \`{/* ... rest unchanged */}\`. Incomplete JSX will cause a compilation error.`;
 
-export function buildSystemPrompt(fs: VirtualFileSystem): string {
+export function buildSystemPrompt(
+  fs: VirtualFileSystem,
+  theme?: Theme,
+): string {
+  const themeSection = theme ? buildThemeSection(theme) : "";
+  const base = emailGenerationPromptBase + themeSection;
+
   const filePaths = fs.listFiles();
-  if (filePaths.length === 0) return emailGenerationPromptBase;
+  if (filePaths.length === 0) return base;
 
   const fileSection = filePaths
     .map((path) => {
@@ -33,15 +105,16 @@ export function buildSystemPrompt(fs: VirtualFileSystem): string {
     })
     .join("\n\n");
 
-  return `${emailGenerationPromptBase}\n\n## Current file state\n\nThese files already exist — edit them instead of recreating:\n\n${fileSection}`;
+  return `${base}\n\n## Current file state\n\nThese files already exist — edit them instead of recreating:\n\n${fileSection}`;
 }
 
 export function buildSystemPromptMessage(
   fs: VirtualFileSystem,
+  theme?: Theme,
 ): SystemModelMessage {
   return {
     role: "system",
-    content: buildSystemPrompt(fs),
+    content: buildSystemPrompt(fs, theme),
     providerOptions: {
       anthropic: {
         cacheControl: { type: "ephemeral" },
