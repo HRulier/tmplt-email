@@ -42,6 +42,7 @@ export default function SignInPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        <div className={styles.logo}>E</div>
         <h1 className={styles.title}>Connexion</h1>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form} noValidate>

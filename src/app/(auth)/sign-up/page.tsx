@@ -50,6 +50,7 @@ export default function SignUpPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        <div className={styles.logo}>E</div>
         <h1 className={styles.title}>Créer un compte</h1>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form} noValidate>

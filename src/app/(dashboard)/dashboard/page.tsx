@@ -28,7 +28,16 @@ export default async function DashboardPage() {
       </div>
 
       {templates.length === 0 ? (
-        <p className={styles.empty}>Aucun template pour l&apos;instant — créez votre premier.</p>
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIllustration}>✉️</div>
+          <p className={styles.emptyTitle}>Aucun template pour l&apos;instant</p>
+          <p className={styles.emptyDesc}>
+            Créez votre premier template email avec l&apos;IA en quelques secondes.
+          </p>
+          <Link href="/generate" className={styles.newBtn}>
+            + Créer mon premier template
+          </Link>
+        </div>
       ) : (
         <div className={styles.grid}>
           {templates.map((t) => (
