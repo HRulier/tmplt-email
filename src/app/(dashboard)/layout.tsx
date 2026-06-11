@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Header } from "@/components/layout/Header";
+import { ToastProvider } from "@/components/ui/Toast";
 import styles from "./layout.module.css";
 
 export default async function DashboardLayout({
@@ -13,9 +14,11 @@ export default async function DashboardLayout({
   if (!session) redirect("/sign-in");
 
   return (
-    <div className={styles.wrapper}>
-      <Header name={session.user.name} />
-      <main className={styles.main}>{children}</main>
-    </div>
+    <ToastProvider>
+      <div className={styles.wrapper}>
+        <Header name={session.user.name} />
+        <main className={styles.main}>{children}</main>
+      </div>
+    </ToastProvider>
   );
 }

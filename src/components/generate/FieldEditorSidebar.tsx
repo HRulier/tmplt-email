@@ -2,6 +2,7 @@
 
 import { useState, KeyboardEvent } from "react";
 import type { FieldDef, SerializedVFS } from "@/types";
+import { useToast } from "@/components/ui/Toast";
 import styles from "./FieldEditorSidebar.module.css";
 
 interface Props {
@@ -17,24 +18,29 @@ export function FieldEditorSidebar({
   files,
   onChange,
 }: Props) {
+  const { show } = useToast();
   const [sendEmail, setSendEmail] = useState("");
   const [sending, setSending] = useState(false);
-  const [sendResult, setSendResult] = useState<"ok" | "error" | null>(null);
   const [showSendForm, setShowSendForm] = useState(false);
 
   const handleSend = async () => {
     if (!sendEmail.trim()) return;
     setSending(true);
-    setSendResult(null);
     try {
       const res = await fetch("/api/send-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ to: sendEmail.trim(), files, fieldValues }),
       });
-      setSendResult(res.ok ? "ok" : "error");
+      if (res.ok) {
+        show("Email envoyé avec succès !", "success");
+        setShowSendForm(false);
+        setSendEmail("");
+      } else {
+        show("Échec de l'envoi. Réessayez.", "error");
+      }
     } catch {
-      setSendResult("error");
+      show("Échec de l'envoi. Réessayez.", "error");
     } finally {
       setSending(false);
     }
@@ -86,10 +92,7 @@ export function FieldEditorSidebar({
               type="email"
               placeholder="you@example.com"
               value={sendEmail}
-              onChange={(e) => {
-                setSendEmail(e.target.value);
-                setSendResult(null);
-              }}
+              onChange={(e) => setSendEmail(e.target.value)}
               onKeyDown={handleKeyDown}
               autoFocus
             />
@@ -98,7 +101,7 @@ export function FieldEditorSidebar({
                 className={styles.cancelBtn}
                 onClick={() => {
                   setShowSendForm(false);
-                  setSendResult(null);
+                  setSendEmail("");
                 }}
                 disabled={sending}
               >
@@ -112,22 +115,11 @@ export function FieldEditorSidebar({
                 {sending ? "Envoi…" : "Envoyer"}
               </button>
             </div>
-            {sendResult === "ok" && (
-              <p className={styles.successMsg}>Email envoyé !</p>
-            )}
-            {sendResult === "error" && (
-              <p className={styles.errorMsg}>
-                Échec de l&apos;envoi. Réessayez.
-              </p>
-            )}
           </div>
         ) : (
           <button
             className={styles.testBtn}
-            onClick={() => {
-              setShowSendForm(true);
-              setSendResult(null);
-            }}
+            onClick={() => setShowSendForm(true)}
           >
             Envoyer l&apos;email
           </button>
