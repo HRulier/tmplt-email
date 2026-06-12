@@ -1,6 +1,9 @@
 services:
   emailgen:
-    build: .
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_BETTER_AUTH_URL: https://email-gen.loopness.fr
     network_mode: host
     restart: unless-stopped
     env_file:
