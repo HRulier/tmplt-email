@@ -55,3 +55,32 @@
   color: #9ca3af;
   gap: 8px;
 }
+
+.errorState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 32px;
+}
+
+.errorIcon {
+  font-size: 2rem;
+  color: #f59e0b;
+}
+
+.errorTitle {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0;
+}
+
+.errorHint {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  margin: 0;
+}

@@ -17,8 +17,9 @@ export async function POST(request: Request) {
     code = await compileVFS(files);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return new Response(`<pre style="color:red;padding:16px">${msg}</pre>`, {
-      headers: { "Content-Type": "text/html" },
+    return new Response(JSON.stringify({ error: msg }), {
+      status: 422,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -37,8 +38,9 @@ export async function POST(request: Request) {
     new Function("module", "exports", "require", code)(mod, mod.exports, sandboxRequire);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return new Response(`<pre style="color:red;padding:16px">Runtime error: ${msg}</pre>`, {
-      headers: { "Content-Type": "text/html" },
+    return new Response(JSON.stringify({ error: msg }), {
+      status: 422,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -49,8 +51,8 @@ export async function POST(request: Request) {
 
   if (typeof EmailComponent !== "function") {
     return new Response(
-      `<pre style="color:red;padding:16px">Email.tsx has no default export</pre>`,
-      { headers: { "Content-Type": "text/html" } }
+      JSON.stringify({ error: "Email.tsx n'a pas d'export default" }),
+      { status: 422, headers: { "Content-Type": "application/json" } }
     );
   }
 

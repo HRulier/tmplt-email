@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState, KeyboardEvent } from "react";
+import { TbMail } from "react-icons/tb";
 import { useTemplate, type AppUIMessage } from "@/contexts/TemplateContext";
 import styles from "./ChatPanel.module.css";
 
@@ -33,10 +34,14 @@ export function ChatPanel() {
       <div className={styles.messages}>
         {messages.length === 0 && (
           <div className={styles.empty}>
-            <div className={styles.emptyIcon}>✉</div>
-            <span>Describe the email you want to generate.</span>
+            <div className={styles.emptyIcon}>
+              <TbMail />
+            </div>
+            <span>Décrivez l&apos;email que vous souhaitez générer.</span>
             <span className={styles.emptyHint}>
-              Try: "A subscription confirmation email with a logo, headline, and CTA button."
+              Exemple : &ldquo;Un email de confirmation d&apos;abonnement avec
+              un logo, un titre et un bouton d&apos;appel à
+              l&apos;action.&rdquo;
             </span>
           </div>
         )}
@@ -49,15 +54,23 @@ export function ChatPanel() {
             <div key={msg.id} className={styles.message} data-role={msg.role}>
               {textParts.map((p, i) =>
                 p.type === "text" && p.text ? (
-                  <div key={i} className={styles.bubble}>{p.text}</div>
-                ) : null
+                  <div key={i} className={styles.bubble}>
+                    {p.text}
+                  </div>
+                ) : null,
               )}
               {toolParts.map((p, i) => {
-                const toolName = p.type.replace(/^tool-/, "").replace(/_/g, " ");
-                const isDone = "state" in p && (p as { state: string }).state === "output";
+                const toolName = p.type
+                  .replace(/^tool-/, "")
+                  .replace(/_/g, " ");
+                const isDone =
+                  "state" in p && (p as { state: string }).state === "output";
                 return (
                   <div key={i} className={styles.toolBadge}>
-                    <span className={styles.toolDot} data-done={String(isDone)} />
+                    <span
+                      className={styles.toolDot}
+                      data-done={String(isDone)}
+                    />
                     <span>{toolName}</span>
                   </div>
                 );
@@ -71,7 +84,7 @@ export function ChatPanel() {
       <div className={styles.footer}>
         <div className={styles.statusBar}>
           {error && <span style={{ color: "#dc2626" }}>{error.message}</span>}
-          {isStreaming && !error && <span>Generating…</span>}
+          {isStreaming && !error && <span>Génération en cours…</span>}
         </div>
         <form
           className={styles.form}
@@ -85,11 +98,16 @@ export function ChatPanel() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Describe your email template…"
+            placeholder="Décrivez votre template d'email…"
             rows={1}
           />
           {isStreaming ? (
-            <button type="button" className={styles.stopBtn} onClick={stop} title="Stop">
+            <button
+              type="button"
+              className={styles.stopBtn}
+              onClick={stop}
+              title="Arrêter"
+            >
               ■
             </button>
           ) : (
@@ -97,7 +115,7 @@ export function ChatPanel() {
               type="submit"
               className={styles.sendBtn}
               disabled={!input.trim()}
-              title="Send"
+              title="Envoyer"
             >
               ↑
             </button>

@@ -8,7 +8,7 @@ import { TemplateNameInput } from "@/components/generate/TemplateNameInput";
 import styles from "./Header.module.css";
 
 const BACK_ROUTES: { match: RegExp; href: string; label: string }[] = [
-  { match: /^\/generate/, href: "/dashboard", label: "Dashboard" },
+  { match: /^\/generate/, href: "/dashboard", label: "Tableau de bord" },
 ];
 
 export function Header({ name }: { name: string }) {
@@ -38,10 +38,10 @@ export function Header({ name }: { name: string }) {
           <TemplateNameInput />
         </Suspense>
       ) : (
-        <span className={styles.name}>Hello {name} 👋</span>
+        <span className={styles.name}>Bonjour {name} 👋</span>
       )}
       <button onClick={handleSignOut} className={styles.signOut}>
-        Sign out
+        Déconnexion
       </button>
     </header>
   );
