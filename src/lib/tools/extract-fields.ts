@@ -17,7 +17,7 @@ type Input = z.infer<typeof inputSchema>;
 export function buildExtractFieldsTool() {
   return tool<Input, { ok: boolean; fields: Input["fields"] }>({
     description:
-      "Call this after creating all email files to declare the list of editable fields. Each field must correspond to a data-field-id attribute present in the JSX.",
+      "Declare the complete and current list of editable fields. Must be called after every generation or edit that adds, removes, or changes fields — always reflect the exact data-field-id attributes present in the JSX at that moment. If a field was removed from the JSX, do not include it here.",
     inputSchema,
     execute: async ({ fields }) => {
       // The fields are captured client-side via onToolCall — no server-side work needed.

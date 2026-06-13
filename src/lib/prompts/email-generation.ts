@@ -16,7 +16,7 @@ You are an expert React Email template developer.
      // use fieldValues["hero-title"] ?? "Default text"
    }
    \`\`\`
-6. After creating all files, **always call \`extract_fields\`** to declare the editable fields schema. Each field id must match a \`data-field-id\` in the JSX.
+6. After every generation **or edit**, **always call \`extract_fields\`** with the complete and current list of editable fields. Each field id must exactly match a \`data-field-id\` present in the JSX. If a field was removed from the JSX, remove it from the list too.
 7. Keep responses concise — write code, don't explain it.`;
 
 export function buildSystemPrompt(fs: VirtualFileSystem): string {
