@@ -1,4 +1,5 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { anthropic, createAnthropic } from "@ai-sdk/anthropic";
+import type { AnthropicProvider } from "@ai-sdk/anthropic";
 
 const EDIT_SIGNALS = [
   /\b(remove|delete|erase|strip)\b/i,
@@ -13,20 +14,25 @@ const GENERATION_SIGNALS = [
   /\b(from scratch|entirely new|completely new)\b/i,
 ];
 
-export function selectModel(lastUserMessage: string, hasFiles: boolean) {
+export function selectModel(
+  lastUserMessage: string,
+  hasFiles: boolean,
+  provider?: AnthropicProvider | ReturnType<typeof createAnthropic>
+) {
+  const p = provider ?? anthropic;
   if (!hasFiles) {
-    return { model: anthropic("claude-sonnet-4-6"), isEdit: false };
+    return { model: p("claude-sonnet-4-6"), isEdit: false };
   }
-  for (const p of GENERATION_SIGNALS) {
-    if (p.test(lastUserMessage)) {
-      return { model: anthropic("claude-sonnet-4-6"), isEdit: false };
+  for (const pattern of GENERATION_SIGNALS) {
+    if (pattern.test(lastUserMessage)) {
+      return { model: p("claude-sonnet-4-6"), isEdit: false };
     }
   }
-  for (const p of EDIT_SIGNALS) {
-    if (p.test(lastUserMessage)) {
-      return { model: anthropic("claude-haiku-4-5"), isEdit: true };
+  for (const pattern of EDIT_SIGNALS) {
+    if (pattern.test(lastUserMessage)) {
+      return { model: p("claude-haiku-4-5"), isEdit: true };
     }
   }
   // Files exist, ambiguous intent → default to Haiku (edits are the common case post-generation)
-  return { model: anthropic("claude-haiku-4-5"), isEdit: true };
+  return { model: p("claude-haiku-4-5"), isEdit: true };
 }
