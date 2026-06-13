@@ -86,22 +86,24 @@ export function ChatPanel() {
                   </div>
                 ) : null,
               )}
-              {toolParts.map((p, i) => {
-                const toolName = p.type
-                  .replace(/^tool-/, "")
-                  .replace(/_/g, " ");
-                const isDone =
-                  "state" in p && (p as { state: string }).state === "output";
-                return (
-                  <div key={i} className={styles.toolBadge}>
-                    <span
-                      className={styles.toolDot}
-                      data-done={String(isDone)}
-                    />
-                    <span>{toolName}</span>
-                  </div>
-                );
-              })}
+              {Array.from(
+                toolParts.reduce<Map<string, boolean>>((acc, p) => {
+                  const name = p.type.replace(/^tool-/, "").replace(/_/g, " ");
+                  const isDone =
+                    "state" in p &&
+                    (p as { state: string }).state === "output";
+                  acc.set(name, (acc.get(name) ?? false) || isDone);
+                  return acc;
+                }, new Map()),
+              ).map(([name, isDone]) => (
+                <div key={name} className={styles.toolBadge}>
+                  <span
+                    className={styles.toolDot}
+                    data-done={String(isDone)}
+                  />
+                  <span>{name}</span>
+                </div>
+              ))}
             </div>
           );
         })}

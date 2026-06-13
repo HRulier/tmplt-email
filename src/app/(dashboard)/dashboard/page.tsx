@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   await connectDB();
 
   const templates = await TemplateModel.find({ userId: session!.user.id })
-    .select("_id name updatedAt")
+    .select("_id name updatedAt isExample")
     .sort({ updatedAt: -1 })
     .lean();
 
@@ -46,6 +46,7 @@ export default async function DashboardPage() {
               id={t._id.toString()}
               name={t.name}
               updatedAt={t.updatedAt.toISOString()}
+              isExample={t.isExample ?? false}
             />
           ))}
         </div>

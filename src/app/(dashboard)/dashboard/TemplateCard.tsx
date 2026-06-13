@@ -10,9 +10,10 @@ interface Props {
   id: string;
   name: string;
   updatedAt: string;
+  isExample?: boolean;
 }
 
-export function TemplateCard({ id, name, updatedAt }: Props) {
+export function TemplateCard({ id, name, updatedAt, isExample }: Props) {
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -36,6 +37,7 @@ export function TemplateCard({ id, name, updatedAt }: Props) {
     <>
       <div className={styles.cardWrapper}>
         <Link href={`/generate?template=${id}`} className={styles.card}>
+          {isExample && <span className={styles.exampleBadge}>Exemple</span>}
           <p className={styles.cardName}>{name}</p>
           <p className={styles.cardMeta}>
             Modifié le{" "}

@@ -3,6 +3,8 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { nextCookies } from "better-auth/next-js";
 import { MongoClient } from "mongodb";
 import { Resend } from "resend";
+import { connectDB } from "@/lib/db";
+import { TemplateModel } from "@/lib/models/template.model";
 
 const client = new MongoClient(process.env.MONGODB_URI!);
 const db = client.db();
@@ -31,6 +33,32 @@ export const auth = betterAuth({
     },
   },
   plugins: [nextCookies()],
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          try {
+            await connectDB();
+            const examples = await TemplateModel.find({ isExample: true }).lean();
+            if (!examples.length) return;
+            await TemplateModel.insertMany(
+              examples.map((ex) => ({
+                userId: user.id,
+                name: ex.name,
+                files: ex.files,
+                fields: ex.fields,
+                fieldValues: ex.fieldValues,
+                isExample: false,
+                messages: ex.messages ?? [],
+              })),
+            );
+          } catch (err) {
+            console.error("[auth] Failed to seed example templates for", user.id, err);
+          }
+        },
+      },
+    },
+  },
 });
 
 export type Session = typeof auth.$Infer.Session;
