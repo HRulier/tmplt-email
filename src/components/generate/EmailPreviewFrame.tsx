@@ -7,7 +7,6 @@ import styles from "./EmailPreviewFrame.module.css";
 interface Props {
   files: SerializedVFS;
   fieldValues?: Record<string, string>;
-  fieldValuesReady: boolean;
   lastFinishedAt: number;
   onLoadingChange?: (loading: boolean) => void;
   onFetchReady?: (fn: () => void) => void;
@@ -16,7 +15,6 @@ interface Props {
 export function EmailPreviewFrame({
   files,
   fieldValues = {},
-  fieldValuesReady,
   lastFinishedAt,
   onLoadingChange,
   onFetchReady,
@@ -49,7 +47,7 @@ export function EmailPreviewFrame({
     }
   }, [onLoadingChange]);
 
-  // Expose fetchPreview to parent once ready
+  // Expose fetchPreview to parent
   useEffect(() => {
     onFetchReady?.(fetchPreview);
   }, [fetchPreview, onFetchReady]);
@@ -60,17 +58,15 @@ export function EmailPreviewFrame({
     fetchPreview();
   }, [lastFinishedAt, fetchPreview]);
 
-  // Trigger once when files + fieldValues are both ready.
-  // fieldValuesReady is set by Workspace after seeding from saved DB values,
-  // ensuring the first preview render always uses the correct field values.
+  // Initial render when loading an existing template — fires once when files arrive.
+  // Since files + fieldValues are now set atomically, no fieldValuesReady guard needed.
   const didInitRef = useRef(false);
   const hasFiles = Object.values(files).some((n) => n.type === "file");
   useEffect(() => {
-    if (didInitRef.current) return;
-    if (!hasFiles || !fieldValuesReady) return;
+    if (didInitRef.current || !hasFiles) return;
     didInitRef.current = true;
     fetchPreview();
-  }, [hasFiles, fieldValuesReady, fetchPreview]);
+  }, [hasFiles, fetchPreview]);
 
   // Auto-resize iframe to match its content height
   const handleIframeLoad = () => {
@@ -78,15 +74,13 @@ export function EmailPreviewFrame({
     if (!iframe) return;
     try {
       const doc = iframe.contentDocument;
-      if (doc) {
-        iframe.style.height = doc.documentElement.scrollHeight + "px";
-      }
+      if (doc) iframe.style.height = doc.documentElement.scrollHeight + "px";
     } catch {
       // cross-origin — leave default height
     }
   };
 
-  if (!Object.values(files).some((n) => n.type === "file")) return null;
+  if (!hasFiles) return null;
 
   return (
     <div className={styles.wrapper}>

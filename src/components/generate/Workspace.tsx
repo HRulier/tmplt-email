@@ -10,20 +10,26 @@ import type { FieldDef } from "@/types";
 
 type Tab = "code" | "preview";
 
-function extractTemplateName(messages: { role: string; parts?: Array<{ type: string; text?: string }> }[]): string {
+function extractTemplateName(
+  messages: { role: string; parts?: Array<{ type: string; text?: string }> }[],
+): string {
   const first = messages.find((m) => m.role === "user");
   const text = first?.parts?.find((p) => p.type === "text")?.text ?? "Untitled";
   return text.slice(0, 60).trim();
 }
 
-function buildDefaults(fields: FieldDef[], savedFieldValues: Record<string, string>): Record<string, string> {
+function buildDefaults(
+  fields: FieldDef[],
+  savedFieldValues: Record<string, string>,
+): Record<string, string> {
   const defaults: Record<string, string> = {};
   for (const f of fields) defaults[f.id] = f.defaultValue;
   return { ...defaults, ...savedFieldValues };
 }
 
 export function Workspace() {
-  const { files, fields, savedFieldValues, messages, lastFinishedAt } = useTemplate();
+  const { fs, messages, lastFinishedAt } = useTemplate();
+  const { files, fields, savedFieldValues } = fs;
   const router = useRouter();
   const searchParams = useSearchParams();
   const templateIdRef = useRef<string | null>(searchParams.get("template"));
@@ -34,34 +40,45 @@ export function Workspace() {
         .filter((n) => n.type === "file")
         .map((n) => n.path)
         .sort(),
-    [files]
+    [files],
   );
 
   const fieldDefaults = useMemo(
     () => buildDefaults(fields, savedFieldValues),
-    [fields, savedFieldValues]
+    [fields, savedFieldValues],
   );
 
   // fieldOverrides resets whenever the field set identity changes (new generation or template load)
   const fieldsId = fields.map((f) => f.id).join(",");
-  const [overridesForFields, setOverridesForFields] = useState<{ fieldsId: string; values: Record<string, string> }>(
-    { fieldsId, values: {} }
-  );
+  const [overridesForFields, setOverridesForFields] = useState<{
+    fieldsId: string;
+    values: Record<string, string>;
+  }>({ fieldsId, values: {} });
+
   const fieldOverrides = useMemo(
-    () => (overridesForFields.fieldsId === fieldsId ? overridesForFields.values : {}),
-    [overridesForFields, fieldsId]
+    () =>
+      overridesForFields.fieldsId === fieldsId ? overridesForFields.values : {},
+    [overridesForFields, fieldsId],
   );
-  const fieldValues = useMemo(() => ({ ...fieldDefaults, ...fieldOverrides }), [fieldDefaults, fieldOverrides]);
-  const fieldValuesReady = fields.length > 0 || Object.keys(savedFieldValues).length > 0;
+
+  const fieldValues = useMemo(
+    () => ({ ...fieldDefaults, ...fieldOverrides }),
+    [fieldDefaults, fieldOverrides],
+  );
 
   // tab: "preview" once files exist, unless user explicitly chose "code"
   const [tabOverride, setTabOverride] = useState<Tab | null>(null);
   const tab: Tab = tabOverride ?? (filePaths.length > 0 ? "preview" : "code");
 
   // selected: /Email.tsx or first file, unless user clicked a different file
-  const defaultSelected = filePaths.includes("/Email.tsx") ? "/Email.tsx" : (filePaths[0] ?? null);
+  const defaultSelected = filePaths.includes("/Email.tsx")
+    ? "/Email.tsx"
+    : (filePaths[0] ?? null);
   const [selectedOverride, setSelectedOverride] = useState<string | null>(null);
-  const selected = selectedOverride !== null && filePaths.includes(selectedOverride) ? selectedOverride : defaultSelected;
+  const selected =
+    selectedOverride !== null && filePaths.includes(selectedOverride)
+      ? selectedOverride
+      : defaultSelected;
 
   const [previewLoading, setPreviewLoading] = useState(false);
   const fetchPreviewRef = useRef<(() => void) | null>(null);
@@ -78,11 +95,18 @@ export function Workspace() {
         body: JSON.stringify({ files, fields, fieldValues: fieldDefaults }),
       }).catch(console.error);
     } else {
-      const name = extractTemplateName(messages as Parameters<typeof extractTemplateName>[0]);
+      const name = extractTemplateName(
+        messages as Parameters<typeof extractTemplateName>[0],
+      );
       fetch("/api/templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, files, fields, fieldValues: fieldDefaults }),
+        body: JSON.stringify({
+          name,
+          files,
+          fields,
+          fieldValues: fieldDefaults,
+        }),
       })
         .then((r) => r.json())
         .then((data: { id?: string }) => {
@@ -93,7 +117,7 @@ export function Workspace() {
         })
         .catch(console.error);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastFinishedAt]);
 
   const handleFetchReady = useCallback((fn: () => void) => {
@@ -133,13 +157,6 @@ export function Workspace() {
       <div className={styles.tabs}>
         <button
           className={styles.tab}
-          data-active={tab === "code" ? "true" : "false"}
-          onClick={() => setTabOverride("code")}
-        >
-          Code
-        </button>
-        <button
-          className={styles.tab}
           data-active={tab === "preview" ? "true" : "false"}
           onClick={() => setTabOverride("preview")}
         >
@@ -170,7 +187,6 @@ export function Workspace() {
           <EmailPreviewFrame
             files={files}
             fieldValues={fieldValues}
-            fieldValuesReady={fieldValuesReady}
             lastFinishedAt={lastFinishedAt}
             onLoadingChange={setPreviewLoading}
             onFetchReady={handleFetchReady}
