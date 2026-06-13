@@ -360,3 +360,72 @@
   animation: checkmark var(--duration-slow) var(--ease-spring) both;
   display: inline-block;
 }
+
+/* Generating state */
+@keyframes loaderSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes loaderFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes loaderPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.generatingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex: 1;
+  animation: loaderFadeIn var(--duration-slow) var(--ease-out) both;
+}
+
+.spinnerWrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-1);
+}
+
+.spinnerWrap::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--indigo-100) 0%, transparent 70%);
+  animation: loaderPulse 1.8s var(--ease-in-out) infinite;
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid var(--indigo-100);
+  border-top-color: var(--color-primary);
+  animation: loaderSpin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+.generatingLabel {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  animation: loaderFadeIn var(--duration-slow) var(--ease-out) 60ms both;
+}
+
+.generatingDesc {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  margin: 0;
+  animation: loaderFadeIn var(--duration-slow) var(--ease-out) 120ms both;
+}
