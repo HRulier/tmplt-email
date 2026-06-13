@@ -24,6 +24,14 @@ import type { UIMessage } from "ai";
 type VfsMeta = { vfsSnapshot?: SerializedVFS; templateName?: string };
 type AppUIMessage = UIMessage<VfsMeta>;
 
+// Keep original intent (first message) + recent context, capped at `limit` messages
+function withFirstAndRecent<T>(msgs: T[], limit = 10): T[] {
+  if (msgs.length <= limit) return msgs;
+  const [first, ...rest] = msgs;
+  const recent = rest.slice(-(limit - 1));
+  return [first, ...recent];
+}
+
 export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return new Response("Unauthorized", { status: 401 });
@@ -81,7 +89,7 @@ export async function POST(request: Request) {
   const result = streamText({
     model,
     system: buildSystemPromptMessage(fs),
-    messages: await convertToModelMessages(messages.slice(-6)),
+    messages: await convertToModelMessages(withFirstAndRecent(messages)),
     maxOutputTokens: isEdit ? 4_000 : 8_000,
     stopWhen: stepCountIs(isEdit ? 10 : 20),
     tools: {

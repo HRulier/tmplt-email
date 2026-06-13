@@ -7,6 +7,7 @@ export interface TemplateDocument extends Document {
   files: SerializedVFS;
   fields: FieldDef[];
   fieldValues: Record<string, string>;
+  messages: unknown[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +29,7 @@ const TemplateSchema = new Schema<TemplateDocument>(
     files: { type: Schema.Types.Mixed, required: true },
     fields: { type: [FieldDefSchema], default: [] },
     fieldValues: { type: Schema.Types.Mixed, default: {} },
+    messages: { type: Schema.Types.Mixed, default: [] },
   },
   { timestamps: true }
 );

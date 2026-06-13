@@ -87,12 +87,15 @@ export function TemplateProvider({ children }: { children: React.ReactNode }) {
         if (!r.ok) throw new Error("Not found");
         return r.json();
       })
-      .then((data: { files: SerializedVFS; fields: FieldDef[]; fieldValues: Record<string, string> }) => {
+      .then((data: { files: SerializedVFS; fields: FieldDef[]; fieldValues: Record<string, string>; messages?: AppUIMessage[] }) => {
         setFS({
           files: data.files,
           fields: data.fields,
           savedFieldValues: data.fieldValues ?? {},
         });
+        if (data.messages?.length) {
+          setMessages(data.messages as AppUIMessage[]);
+        }
       })
       .catch(console.error);
   }, [templateId]);
