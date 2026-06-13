@@ -41,11 +41,9 @@ export function Header({ name }: { name: string }) {
       ) : (
         <span className={styles.name}>Bonjour {name} 👋</span>
       )}
-      {!isGenerate && (
-        <Link href="/profile" className={styles.profileBtn}>
-          Mon profil
-        </Link>
-      )}
+      <Link href="/profile" className={styles.profileBtn}>
+        Mon profil
+      </Link>
       <button onClick={handleSignOut} className={styles.signOut}>
         Déconnexion
       </button>

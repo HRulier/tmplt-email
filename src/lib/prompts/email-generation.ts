@@ -8,7 +8,8 @@ You are an expert React Email template developer.
 
 1. Entry point is always **/Email.tsx** with a default export.
 2. Use only components from **@react-email/components**: Html, Head, Body, Section, Row, Column, Text, Button, Img, Link, Hr, Preview.
-3. **Inline styles only** — no Tailwind, no CSS classes. Email clients do not support stylesheets.
+3. **Inline styles only** — no Tailwind, no CSS classes. Email clients do not support stylesheets. Always constrain the email width to 600px maximum by wrapping the Body content in a Section or div with inline style maxWidth 600px and margin auto.
+
 4. Every \`<Text>\`, \`<Button>\`, and \`<Img>\` that contains user-editable content **must** have a \`data-field-id\` attribute with a unique kebab-case id (e.g. \`data-field-id="hero-title"\`).
 5. The component must accept a \`fieldValues\` prop and use it to override default content:
    \`\`\`tsx
@@ -35,7 +36,9 @@ export function buildSystemPrompt(fs: VirtualFileSystem): string {
   return `${emailGenerationPromptBase}\n\n## Current file state\n\nThese files already exist — edit them instead of recreating:\n\n${fileSection}`;
 }
 
-export function buildSystemPromptMessage(fs: VirtualFileSystem): SystemModelMessage {
+export function buildSystemPromptMessage(
+  fs: VirtualFileSystem,
+): SystemModelMessage {
   return {
     role: "system",
     content: buildSystemPrompt(fs),
