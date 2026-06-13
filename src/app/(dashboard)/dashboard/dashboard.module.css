@@ -1,6 +1,5 @@
 .page {
   padding: 32px;
-  max-width: 960px;
   overflow-y: auto;
   flex: 1;
 }
@@ -48,7 +47,9 @@
   gap: 12px;
   text-decoration: none;
   color: inherit;
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
   width: 100%;
 }
 
@@ -80,7 +81,10 @@
   color: #9ca3af;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  transition:
+    opacity 0.15s,
+    color 0.15s,
+    background 0.15s;
   padding: 0;
 }
 

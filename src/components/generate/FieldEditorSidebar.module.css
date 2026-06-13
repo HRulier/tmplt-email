@@ -59,7 +59,9 @@
   border-radius: 6px;
   padding: 7px 10px;
   outline: none;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
   width: 100%;
   box-sizing: border-box;
 }
@@ -88,17 +90,18 @@
   padding: 8px;
   font-size: 0.8125rem;
   font-weight: 500;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #1d4ed8;
   border-radius: 7px;
-  background: #fff;
-  color: #374151;
+  background: #1d4ed8;
+  color: #fff;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 .testBtn:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  background: #285be7;
 }
 
 .sendForm {
@@ -118,7 +121,9 @@
   outline: none;
   width: 100%;
   box-sizing: border-box;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .sendInput:focus {

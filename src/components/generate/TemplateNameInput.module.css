@@ -1,0 +1,56 @@
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+}
+
+/* Hidden span that drives the width */
+.sizer {
+  position: absolute;
+  visibility: hidden;
+  white-space: pre;
+  font-size: 0.875rem;
+  font-weight: 800;
+  padding: 4px 0px;
+  pointer-events: none;
+  min-width: 80px;
+}
+
+.input {
+  width: 100%;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #1d4ed8;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 0px;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.wrapper:hover .input {
+  border-color: #e5e7eb;
+}
+
+.input:focus {
+  border-color: #1d4ed8;
+  background: #fff;
+}
+
+.icon {
+  flex-shrink: 0;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.placeholder {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #1d4ed8;
+  padding: 4px 8px;
+}
