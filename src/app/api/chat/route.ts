@@ -11,12 +11,13 @@ import { VirtualFileSystem } from "@/lib/file-system";
 import { buildStrReplaceTool } from "@/lib/tools/str-replace";
 import { buildFileManagerTool } from "@/lib/tools/file-manager";
 import { buildExtractFieldsTool } from "@/lib/tools/extract-fields";
+import { buildSetTemplateNameTool } from "@/lib/tools/set-template-name";
 import { buildSystemPromptMessage } from "@/lib/prompts/email-generation";
 import { selectModel } from "@/lib/model-router";
 import type { SerializedVFS } from "@/types";
 import type { UIMessage } from "ai";
 
-type VfsMeta = { vfsSnapshot?: SerializedVFS };
+type VfsMeta = { vfsSnapshot?: SerializedVFS; templateName?: string };
 type AppUIMessage = UIMessage<VfsMeta>;
 
 export async function POST(request: Request) {
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
       str_replace_editor: buildStrReplaceTool(fs),
       file_manager: buildFileManagerTool(fs),
       extract_fields: buildExtractFieldsTool(),
+      set_template_name: buildSetTemplateNameTool(),
     },
   });
 
@@ -61,9 +63,16 @@ export async function POST(request: Request) {
     execute: async ({ writer }) => {
       writer.merge(result.toUIMessageStream());
       await result.consumeStream();
+      const steps = await result.steps;
+      const nameCall = steps
+        .flatMap((s) => s.toolCalls)
+        .find((c) => c.toolName === "set_template_name");
+      const templateName = nameCall
+        ? (nameCall.input as { name: string }).name
+        : undefined;
       writer.write({
         type: "finish",
-        messageMetadata: { vfsSnapshot: fs.serialize() },
+        messageMetadata: { vfsSnapshot: fs.serialize(), templateName },
       });
     },
   });

@@ -15,7 +15,7 @@ import { DefaultChatTransport } from "ai";
 import type { UIMessage } from "ai";
 import type { FieldDef, SerializedVFS } from "@/types";
 
-type VfsMeta = { vfsSnapshot?: SerializedVFS };
+type VfsMeta = { vfsSnapshot?: SerializedVFS; templateName?: string };
 export type AppUIMessage = UIMessage<VfsMeta>;
 type ChatHelpers = ReturnType<typeof useChat<AppUIMessage>>;
 
@@ -39,6 +39,7 @@ interface TemplateContextValue {
   stop: ChatHelpers["stop"];
   setMessages: ChatHelpers["setMessages"];
   lastFinishedAt: number;
+  lastTemplateName: string | undefined;
 }
 
 const TemplateContext = createContext<TemplateContextValue | null>(null);
@@ -98,6 +99,7 @@ export function TemplateProvider({ children }: { children: React.ReactNode }) {
 
   // chat
   const [lastFinishedAt, setLastFinishedAt] = useState(0);
+  const [lastTemplateName, setLastTemplateName] = useState<string | undefined>(undefined);
 
   // store and transport are created once per provider instance via useMemo.
   // store.files is updated in an effect and only read inside the async fetch
@@ -132,6 +134,7 @@ export function TemplateProvider({ children }: { children: React.ReactNode }) {
       onFinish: ({ message }) => {
         const snapshot = message.metadata?.vfsSnapshot;
         if (snapshot) setFiles(snapshot);
+        setLastTemplateName(message.metadata?.templateName);
         setLastFinishedAt(Date.now());
       },
     });
@@ -150,6 +153,7 @@ export function TemplateProvider({ children }: { children: React.ReactNode }) {
         stop,
         setMessages,
         lastFinishedAt,
+        lastTemplateName,
       }}
     >
       {children}
