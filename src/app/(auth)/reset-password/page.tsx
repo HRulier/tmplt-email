@@ -46,6 +46,7 @@ function RequestForm() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        <div className={styles.logo}>E</div>
         <h1 className={styles.title}>Mot de passe oublié</h1>
         <p className={styles.description}>
           Entrez votre email pour recevoir un lien de réinitialisation.
@@ -102,6 +103,7 @@ function ResetForm({ token }: { token: string }) {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
+        <div className={styles.logo}>E</div>
         <h1 className={styles.title}>Nouveau mot de passe</h1>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form} noValidate>
