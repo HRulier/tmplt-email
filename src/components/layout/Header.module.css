@@ -58,7 +58,7 @@
   flex: 1;
 }
 
-.profileBtn {
+.btn {
   padding: 6px 14px;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
@@ -67,35 +67,17 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   text-decoration: none;
+  transition:
+    border-color var(--transition-base),
+    color var(--transition-base),
+    background var(--transition-fast);
+}
+
+.themeBtn {
   margin-left: auto;
-  transition:
-    border-color var(--transition-base),
-    color var(--transition-base),
-    background var(--transition-fast);
 }
 
-.profileBtn:hover {
-  border-color: var(--color-border-strong);
-  color: var(--color-text-primary);
-  background: var(--color-surface-raised);
-}
-
-.signOut {
-  padding: 6px 14px;
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-secondary);
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition:
-    border-color var(--transition-base),
-    color var(--transition-base),
-    background var(--transition-fast);
-}
-
-.signOut:hover {
+.btn:hover {
   border-color: var(--color-border-strong);
   color: var(--color-text-primary);
   background: var(--color-surface-raised);

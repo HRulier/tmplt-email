@@ -10,6 +10,7 @@ import styles from "./Header.module.css";
 const BACK_ROUTES: { match: RegExp; href: string; label: string }[] = [
   { match: /^\/generate/, href: "/dashboard", label: "Tableau de bord" },
   { match: /^\/profile/, href: "/dashboard", label: "Tableau de bord" },
+  { match: /^\/theme/, href: "/dashboard", label: "Tableau de bord" },
 ];
 
 export function Header({ name }: { name: string }) {
@@ -53,10 +54,13 @@ export function Header({ name }: { name: string }) {
       ) : (
         <span className={styles.name}>Bonjour {name} 👋</span>
       )}
-      <Link href="/profile" className={styles.profileBtn}>
+      <Link href="/theme" className={`${styles.btn} ${styles.themeBtn}`}>
+        Thème
+      </Link>
+      <Link href="/profile" className={styles.btn}>
         Mon profil
       </Link>
-      <button onClick={handleSignOut} className={styles.signOut}>
+      <button onClick={handleSignOut} className={styles.btn}>
         Déconnexion
       </button>
     </header>
