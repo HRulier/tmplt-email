@@ -1,0 +1,36 @@
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--gray-100) 25%,
+    var(--gray-200) 50%,
+    var(--gray-100) 75%
+  );
+  background-size: 1200px 100%;
+  animation: shimmer 1.5s var(--ease-in-out) infinite;
+  border-radius: var(--radius-md);
+}
+
+.card {
+  composes: shimmer;
+  height: 88px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+}
+
+.titleSkeleton {
+  composes: shimmer;
+  width: 200px;
+  height: 28px;
+}
+
+.btnSkeleton {
+  composes: shimmer;
+  width: 148px;
+  height: 36px;
+  border-radius: var(--radius-lg);
+}
