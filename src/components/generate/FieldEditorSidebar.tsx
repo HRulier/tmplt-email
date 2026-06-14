@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, KeyboardEvent } from "react";
+import { useState } from "react";
 import type { FieldDef, SerializedVFS } from "@/types";
 import { useToast } from "@/components/ui/Toast";
+import { renderVfsToHtml } from "@/lib/render-vfs-client";
 import styles from "./FieldEditorSidebar.module.css";
 
 interface Props {
@@ -19,36 +20,29 @@ export function FieldEditorSidebar({
   onChange,
 }: Props) {
   const { show } = useToast();
-  const [sendEmail, setSendEmail] = useState("");
   const [sending, setSending] = useState(false);
-  const [showSendForm, setShowSendForm] = useState(false);
 
   const handleSend = async () => {
-    if (!sendEmail.trim()) return;
     setSending(true);
     try {
+      const html = await renderVfsToHtml(files, fieldValues);
       const res = await fetch("/api/send-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: sendEmail.trim(), files, fieldValues }),
+        body: JSON.stringify({ html }),
       });
       if (res.ok) {
-        show("Email envoyé avec succès !", "success");
-        setShowSendForm(false);
-        setSendEmail("");
+        show("Email envoyé à votre adresse !", "success");
+      } else if (res.status === 429) {
+        show("Limite quotidienne atteinte. Réessayez demain.", "error");
       } else {
         show("Échec de l'envoi. Réessayez.", "error");
       }
     } catch {
-      show("Échec de l'envoi. Réessayez.", "error");
+      show("Échec du rendu ou de l'envoi.", "error");
     } finally {
       setSending(false);
     }
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") handleSend();
-    if (e.key === "Escape") setShowSendForm(false);
   };
 
   return (
@@ -85,45 +79,13 @@ export function FieldEditorSidebar({
       </div>
 
       <div className={styles.footer}>
-        {showSendForm ? (
-          <div className={styles.sendForm}>
-            <input
-              className={styles.sendInput}
-              type="email"
-              placeholder="you@example.com"
-              value={sendEmail}
-              onChange={(e) => setSendEmail(e.target.value)}
-              onKeyDown={handleKeyDown}
-              autoFocus
-            />
-            <div className={styles.sendActions}>
-              <button
-                className={styles.cancelBtn}
-                onClick={() => {
-                  setShowSendForm(false);
-                  setSendEmail("");
-                }}
-                disabled={sending}
-              >
-                Annuler
-              </button>
-              <button
-                className={styles.sendBtn}
-                onClick={handleSend}
-                disabled={!sendEmail.trim() || sending}
-              >
-                {sending ? "Envoi…" : "Envoyer"}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            className={styles.testBtn}
-            onClick={() => setShowSendForm(true)}
-          >
-            Envoyer l&apos;email
-          </button>
-        )}
+        <button
+          className={styles.testBtn}
+          onClick={handleSend}
+          disabled={sending}
+        >
+          {sending ? "Envoi…" : "Envoyer un email de test"}
+        </button>
       </div>
     </aside>
   );

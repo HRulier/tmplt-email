@@ -1,74 +1,70 @@
-import React from "react";
-import * as ReactJSXRuntime from "react/jsx-runtime";
-import * as ReactJSXDevRuntime from "react/jsx-dev-runtime";
-import * as ReactEmailComponents from "@react-email/components";
-import { render } from "@react-email/render";
 import { Resend } from "resend";
 import { headers } from "next/headers";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { compileVFS } from "@/lib/vfs-compiler";
-import type { SerializedVFS } from "@/types";
+import { connectDB } from "@/lib/db";
+import { UserSettingsModel } from "@/lib/models/user-settings.model";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const DAILY_LIMIT = 20;
+const MAX_HTML_BYTES = 500_000;
+
+const Body = z.object({
+  html: z.string().min(1).max(MAX_HTML_BYTES),
+});
+
+function startOfUtcDay(d: Date): Date {
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
 
 export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { to, files, fieldValues = {} } = (await request.json()) as {
-    to: string;
-    files: SerializedVFS;
-    fieldValues?: Record<string, string>;
-  };
-
-  if (!to || !files) {
-    return Response.json({ error: "Missing to or files" }, { status: 400 });
-  }
-
-  let code: string;
+  let raw: unknown;
   try {
-    code = await compileVFS(files);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return Response.json({ error: `Compile error: ${msg}` }, { status: 422 });
+    raw = await request.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
-
-  const mod = { exports: {} as Record<string, unknown> };
-  const sandboxRequire = (id: string): unknown => {
-    if (id === "react") return React;
-    if (id === "react/jsx-runtime") return ReactJSXRuntime;
-    if (id === "react/jsx-dev-runtime") return ReactJSXDevRuntime;
-    if (id === "@react-email/components") return ReactEmailComponents;
-    throw new Error(`Cannot require "${id}"`);
-  };
-
-  try {
-    // eslint-disable-next-line no-new-func
-    new Function("module", "exports", "require", code)(mod, mod.exports, sandboxRequire);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return Response.json({ error: `Runtime error: ${msg}` }, { status: 422 });
+  const parsed = Body.safeParse(raw);
+  if (!parsed.success) {
+    return Response.json({ error: "Invalid body" }, { status: 400 });
   }
+  const { html } = parsed.data;
 
-  const EmailComponent = (mod.exports as Record<string, unknown>).default as
-    | React.ComponentType<{ fieldValues?: Record<string, string> }>
-    | undefined;
+  await connectDB();
+  const todayStart = startOfUtcDay(new Date());
 
-  if (typeof EmailComponent !== "function") {
-    return Response.json({ error: "Email.tsx has no default export" }, { status: 422 });
+  // Atomically reset the counter if we crossed a UTC day boundary, then increment.
+  // findOneAndUpdate with $cond style isn't available; do two steps in a single doc.
+  const settings = await UserSettingsModel.findOneAndUpdate(
+    { userId: session.user.id },
+    { $setOnInsert: { userId: session.user.id } },
+    { upsert: true, new: true },
+  );
+
+  if (!settings.testEmailsResetAt || settings.testEmailsResetAt < todayStart) {
+    settings.testEmailsResetAt = todayStart;
+    settings.testEmailsToday = 0;
   }
-
-  const html = await render(React.createElement(EmailComponent, { fieldValues }));
+  if (settings.testEmailsToday >= DAILY_LIMIT) {
+    return Response.json({ error: "Daily limit reached" }, { status: 429 });
+  }
+  settings.testEmailsToday += 1;
+  await settings.save();
 
   const { error } = await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL ?? "noreply@example.com",
-    to,
+    to: session.user.email,
     subject: "Test email",
     html,
   });
 
   if (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error("[send-test] Resend error:", error);
+    return Response.json({ error: "Send failed" }, { status: 502 });
   }
 
   return Response.json({ ok: true });
