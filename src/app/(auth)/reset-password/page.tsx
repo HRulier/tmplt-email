@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useSearchParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { InputEmail } from "@/components/ui/InputEmail";
@@ -55,16 +56,26 @@ function RequestForm() {
     return (
       <div className={styles.container}>
         <div className={styles.card}>
-          <div className={styles.logo}>E</div>
+          <div className={styles.logo}>
+            <Image
+              src="/logo-white.png"
+              alt="EmailGen"
+              width={30}
+              height={30}
+            />
+          </div>
           <div className={styles.submittedState}>
             <div className={styles.submittedIcon}>✓</div>
             <p className={styles.submittedTitle}>Email envoyé</p>
             <p className={styles.submittedDesc}>
-              Si un compte est associé à cet email, vous recevrez un lien dans quelques minutes.
+              Si un compte est associé à cet email, vous recevrez un lien dans
+              quelques minutes.
             </p>
           </div>
           <div className={styles.links}>
-            <Link href="/sign-in" className={styles.link}>Retour à la connexion</Link>
+            <Link href="/sign-in" className={styles.link}>
+              Retour à la connexion
+            </Link>
           </div>
         </div>
       </div>
@@ -80,7 +91,11 @@ function RequestForm() {
           Entrez votre email pour recevoir un lien de réinitialisation.
         </p>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form} noValidate>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className={styles.form}
+          noValidate
+        >
           <InputEmail
             name="email"
             control={form.control}
@@ -105,7 +120,9 @@ function RequestForm() {
         </form>
 
         <div className={styles.links}>
-          <Link href="/sign-in" className={styles.link}>Retour à la connexion</Link>
+          <Link href="/sign-in" className={styles.link}>
+            Retour à la connexion
+          </Link>
         </div>
       </div>
     </div>
@@ -129,7 +146,8 @@ function ResetForm({ token }: { token: string }) {
 
     if (error) {
       form.setError("root", {
-        message: "Lien invalide ou expiré. Faites une nouvelle demande de réinitialisation.",
+        message:
+          "Lien invalide ou expiré. Faites une nouvelle demande de réinitialisation.",
       });
       return;
     }
@@ -142,14 +160,25 @@ function ResetForm({ token }: { token: string }) {
     return (
       <div className={styles.container}>
         <div className={styles.card}>
-          <div className={styles.logo}>E</div>
+          <div className={styles.logo}>
+            <Image
+              src="/logo-white.png"
+              alt="EmailGen"
+              width={40}
+              height={30}
+            />
+          </div>
           <div className={styles.submittedState}>
             <div className={styles.submittedIcon}>✓</div>
             <p className={styles.submittedTitle}>Mot de passe mis à jour</p>
-            <p className={styles.submittedDesc}>Redirection vers la connexion…</p>
+            <p className={styles.submittedDesc}>
+              Redirection vers la connexion…
+            </p>
           </div>
           <div className={styles.links}>
-            <Link href="/sign-in" className={styles.link}>Se connecter</Link>
+            <Link href="/sign-in" className={styles.link}>
+              Se connecter
+            </Link>
           </div>
         </div>
       </div>
@@ -162,7 +191,11 @@ function ResetForm({ token }: { token: string }) {
         <div className={styles.logo}>E</div>
         <h1 className={styles.title}>Nouveau mot de passe</h1>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form} noValidate>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className={styles.form}
+          noValidate
+        >
           <InputPassword
             name="password"
             control={form.control}

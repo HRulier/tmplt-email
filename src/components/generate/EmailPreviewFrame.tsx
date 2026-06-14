@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { SerializedVFS } from "@/types";
+import { renderVfsToHtml } from "@/lib/render-vfs-client";
 import styles from "./EmailPreviewFrame.module.css";
 
 interface Props {
@@ -33,21 +34,11 @@ export function EmailPreviewFrame({
     pendingRef.current = true;
     onLoadingChange?.(true);
     try {
-      const res = await fetch("/api/preview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          files: filesRef.current,
-          fieldValues: fieldValuesRef.current,
-        }),
-      });
-      if (!res.ok) {
-        const { error: msg } = await res.json() as { error: string };
-        setError(msg);
-      } else {
-        setError(null);
-        setHtml(await res.text());
-      }
+      const rendered = await renderVfsToHtml(filesRef.current, fieldValuesRef.current);
+      setError(null);
+      setHtml(rendered);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur de rendu");
     } finally {
       pendingRef.current = false;
       onLoadingChange?.(false);

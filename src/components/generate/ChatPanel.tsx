@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, useCallback, KeyboardEvent } from "react";
 import { TbMail } from "react-icons/tb";
 import { useTemplate, type AppUIMessage } from "@/contexts/TemplateContext";
+import { MAX_USER_MESSAGE_CHARS } from "@/lib/limits";
 import { UsageBanner } from "./UsageBanner";
 import styles from "./ChatPanel.module.css";
 
@@ -38,6 +39,7 @@ export function ChatPanel() {
   const handleSend = () => {
     const text = input.trim();
     if (!text || isStreaming || quotaExceeded) return;
+    if (text.length > MAX_USER_MESSAGE_CHARS) return;
     setInput("");
     setIsSending(true);
     setIsAtBottom(true);
@@ -129,6 +131,11 @@ export function ChatPanel() {
         <UsageBanner onQuotaChange={setQuotaExceeded} />
         <div className={styles.statusBar}>
           {error && <span style={{ color: "var(--color-error-text)" }}>{error.message}</span>}
+          {input.length > 0 && (
+            <span className={styles.charCounter} data-near-limit={input.length >= MAX_USER_MESSAGE_CHARS * 0.9}>
+              {input.length}/{MAX_USER_MESSAGE_CHARS}
+            </span>
+          )}
         </div>
         <form
           className={styles.form}
@@ -144,6 +151,7 @@ export function ChatPanel() {
             onKeyDown={handleKeyDown}
             placeholder="Décrivez votre template d'email…"
             rows={1}
+            maxLength={MAX_USER_MESSAGE_CHARS}
             disabled={quotaExceeded}
           />
           {isStreaming ? (

@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "EmailGen",
+  title: "Email Gen",
   description: "Générateur de templates email par IA",
 };
 

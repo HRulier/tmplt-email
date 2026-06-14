@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { signIn } from "@/lib/auth-client";
 import { InputEmail } from "@/components/ui/InputEmail";
@@ -42,10 +43,16 @@ export default function SignInPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <div className={styles.logo}>E</div>
+        <div className={styles.logo}>
+          <Image src="/logo-white.png" alt="EmailGen" width={40} height={30} />
+        </div>
         <h1 className={styles.title}>Connexion</h1>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form} noValidate>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className={styles.form}
+          noValidate
+        >
           <InputEmail
             name="email"
             control={form.control}

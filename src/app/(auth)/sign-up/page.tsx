@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { signUp } from "@/lib/auth-client";
 import { InputEmail } from "@/components/ui/InputEmail";
@@ -47,7 +48,9 @@ export default function SignUpPage() {
     });
 
     if (error) {
-      form.setError("root", { message: "Erreur lors de la création du compte" });
+      form.setError("root", {
+        message: "Erreur lors de la création du compte",
+      });
       return;
     }
 
@@ -57,12 +60,20 @@ export default function SignUpPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <div className={styles.logo}>E</div>
+        <div className={styles.logo}>
+          <Image src="/logo-white.png" alt="EmailGen" width={40} height={30} />
+        </div>
         <h1 className={styles.title}>Créer un compte</h1>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form} noValidate>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className={styles.form}
+          noValidate
+        >
           <div className={styles.field}>
-            <label htmlFor="name" className={styles.label}>Nom</label>
+            <label htmlFor="name" className={styles.label}>
+              Nom d&apos;utilisateur
+            </label>
             <input
               id="name"
               type="text"
@@ -71,7 +82,9 @@ export default function SignUpPage() {
               autoFocus
               disabled={form.formState.isSubmitting}
               aria-invalid={!!form.formState.errors.name}
-              aria-describedby={form.formState.errors.name ? "name-error" : undefined}
+              aria-describedby={
+                form.formState.errors.name ? "name-error" : undefined
+              }
               className={`${styles.input} ${form.formState.errors.name ? styles.inputError : ""}`}
               {...form.register("name")}
             />
