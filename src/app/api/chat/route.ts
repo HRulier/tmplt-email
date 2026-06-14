@@ -22,6 +22,7 @@ import {
   type Theme,
 } from "@/lib/prompts/email-generation";
 import { selectModel } from "@/lib/model-router";
+import { MAX_USER_MESSAGE_CHARS } from "@/lib/limits";
 import type { SerializedVFS } from "@/types";
 import type { UIMessage } from "ai";
 
@@ -58,6 +59,13 @@ export async function POST(request: Request) {
           lastMsg as { parts?: Array<{ type: string; text?: string }> }
         ).parts?.find((p) => p.type === "text")?.text ?? "")
       : "";
+
+  if (lastUserText.length > MAX_USER_MESSAGE_CHARS) {
+    return Response.json(
+      { error: "message_too_long", limit: MAX_USER_MESSAGE_CHARS },
+      { status: 400 },
+    );
+  }
 
   // Resolve per-user API key and theme in parallel
   await connectDB();

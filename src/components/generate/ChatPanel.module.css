@@ -196,6 +196,20 @@
   font-size: var(--text-xs);
   color: var(--color-text-secondary);
   min-height: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.charCounter {
+  margin-left: auto;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.charCounter[data-near-limit="true"] {
+  color: var(--color-error-text);
 }
 
 .form {
